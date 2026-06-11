@@ -1,0 +1,254 @@
+{
+    "Raissa": {
+        "preferencias": {
+            "estilo_instrucao": "direto"
+        },
+        "registro_humor": [],
+        "historico_conversas": [
+            {
+                "usuario": "nao estou bem me ajude",
+                "olivia": [
+                    "Ação 1: Foque apenas no comando central.",
+                    "Ação 2: Reduza ruidos externos antes de iniciar.",
+                    "Ação 3: Faça uma pausa silenciosa de 5 minutos ao terminar"
+                ]
+            },
+            {
+                "usuario": "2",
+                "olivia": [
+                    "Ação 1: Foque apenas no comando central.",
+                    "Ação 2: Reduza ruidos externos antes de iniciar.",
+                    "Ação 3: Faça uma pausa silenciosa de 5 minutos ao terminar"
+                ]
+            },
+            {
+                "usuario": "2",
+                "olivia": [
+                    "Ação 1: Foque apenas no comando central.",
+                    "Ação 2: Reduza ruidos externos antes de iniciar.",
+                    "Ação 3: Faça uma pausa silenciosa de 5 minutos ao terminar"
+                ]
+            },
+            {
+                "usuario": "2",
+                "olivia": [
+                    "Ação 1: Foque apenas no comando central.",
+                    "Ação 2: Reduza ruidos externos antes de iniciar.",
+                    "Ação 3: Faça uma pausa silenciosa de 5 minutos ao terminar"
+                ]
+            },
+            {
+                "usuario": "nao to bem",
+                "olivia": [
+                    "Ação 1: Foque apenas no comando central.",
+                    "Ação 2: Reduza ruidos externos antes de iniciar.",
+                    "Ação 3: Faça uma pausa silenciosa de 5 minutos ao terminar"
+                ]
+            },
+            {
+                "usuario": "Como faço para focar no comando central?",
+                "olivia": [
+                    "Ação 1: Foque apenas no comando central.",
+                    "Ação 2: Reduza ruidos externos antes de iniciar.",
+                    "Ação 3: Faça uma pausa silenciosa de 5 minutos ao terminar"
+                ]
+            },
+            {
+                "usuario": "me ajude nao estou bem",
+                "olivia": [
+                    "Entendido. Como posso te direcionar ou ajudar neste momento?",
+                    "Digite seu foco atual ou descreva o problema de forma direta."
+                ]
+            },
+            {
+                "usuario": "estou pensando em matar",
+                "olivia": [
+                    "Entendido. Como posso te direcionar ou ajudar neste momento?",
+                    "Digite seu foco atual ou descreva o problema de forma direta."
+                ]
+            },
+            {
+                "usuario": "te",
+                "olivia": [
+                    "Entendido. Como posso te direcionar ou ajudar neste momento?",
+                    "Digite seu foco atual ou descreva o problema de forma direta."
+                ]
+            }
+        ],
+        "exercicios_realizados": []
+    },
+    "Josiane": {
+        "preferencias": {
+            "estilo_instrucao": "acolhedor"
+        },
+        "registro_humor": [
+            "Ansioso 😰"
+        ],
+        "historico_conversas": [
+            {
+                "usuario": "olivia não estou bem hoje",
+                "olivia": [
+                    "Olá! Estou aqui para te ouvir e acompanhar na sua jornada. 💜",
+                    "Sobre o que você gostaria de conversar hoje? Pode se abrir comigo."
+                ]
+            },
+            {
+                "usuario": "tive um dia dificil no curso",
+                "olivia": [
+                    "Olá! Estou aqui para te ouvir e acompanhar na sua jornada. 💜",
+                    "Sobre o que você gostaria de conversar hoje? Pode se abrir comigo."
+                ]
+            },
+            {
+                "usuario": "tive um dia dificil",
+                "olivia": [
+                    "Olá! Estou aqui para te ouvir e acompanhar na sua jornada. 💜",
+                    "Sobre o que você gostaria de conversar hoje? Pode se abrir comigo."
+                ]
+            },
+            {
+                "usuario": "fala comigo",
+                "olivia": [
+                    "Olá! Estou aqui para te ouvir e acompanhar na sua jornada. 💜",
+                    "Sobre o que você gostaria de conversar hoje? Pode se abrir comigo."
+                ]
+            },
+            {
+                "usuario": "nao estou bem hoje",
+                "olivia": [
+                    "Olá! Estou aqui para te ouvir e acompanhar na sua jornada. 💜",
+                    "Sobre o que você gostaria de conversar hoje? Pode se abrir comigo."
+                ]
+            },
+            {
+                "usuario": "terminei meu relacionamento",
+                "olivia": [
+                    "Olá! Estou aqui para te ouvir e acompanhar na sua jornada. 💜",
+                    "Sobre o que você gostaria de conversar hoje? Pode se abrir comigo."
+                ]
+            },
+            {
+                "usuario": "nao estou bem",
+                "olivia": [
+                    "Olá! Estou aqui para te ouvir e acompanhar na sua jornada. 💜",
+                    "Sobre o que você gostaria de conversar hoje? Pode se abrir comigo."
+                ]
+            },
+            {
+                "usuario": "aconteceu algo ruim",
+                "olivia": [
+                    "Olá! Estou aqui para te ouvir e acompanhar na sua jornada. 💜",
+                    "Sobre o que você gostaria de conversar hoje? Pode se abrir comigo."
+                ]
+            },
+            {
+                "usuario": "to triste",
+                "olivia": [
+                    "Sinto muito que você esteja passando por um momento difícil. 💜",
+                    "Está tudo bem não estar forte o tempo todo. Respeite seu tempo.",
+                    "Se quiser, pode me contar mais sobre o que está te deixando assim."
+                ]
+            },
+            {
+                "usuario": "o que posso fazer?",
+                "olivia": [
+                    "Olá! Estou aqui para te ouvir e acompanhar na sua jornada. 💜",
+                    "Sobre o que você gostaria de conversar hoje? Pode se abrir comigo."
+                ]
+            },
+            {
+                "usuario": "estou ansiosa",
+                "olivia": [
+                    "A ansiedade pode parecer gigante, mas lembre-se que você está em segurança.",
+                    "Tente focar no momento presente. O futuro pode esperar um pouco. 🧘",
+                    "Recomendo dar uma olhada nos nossos exercícios de respiração e alongamento."
+                ]
+            },
+            {
+                "usuario": "estou cansada de estudar",
+                "olivia": [
+                    "Para resolver o acúmulo de tarefas, precisamos segmentar os estímulos.",
+                    "Passo Recomendado: Comece organizando visualmente seu caderno ou espaço.",
+                    "Dica: O cansaço mental pode ser mitigado fragmentando o tempo de leitura."
+                ]
+            },
+            {
+                "usuario": "estou ansiosa",
+                "olivia": [
+                    "Ah, entendo perfeitamente que você esteja se sentindo ansiosa neste momento. É um sentimento que pode ser bem desafiador, e é totalmente válido sentir isso. 🫂",
+                    "Saiba que estou aqui para te ouvir e oferecer um espaço seguro, caso precise desabafar ou apenas de um pouco de companhia. Não há problema nenhum em sentir o que você sente, e você não está sozinha. ✨"
+                ]
+            },
+            {
+                "usuario": "estou com problema na escola",
+                "olivia": [
+                    "Ah, meu bem, sinto muito que esteja enfrentando problemas na escola. Sei que essa fase pode ser bem desafiadora e é super normal se sentir um pouco sobrecarregado(a) com isso. 🫂",
+                    "Mas quero que saiba que você não está sozinho(a) e que estou aqui para te escutar com todo o carinho, sem julgamentos. Se quiser compartilhar mais sobre o que está acontecendo, pode desabafar à vontade. 💖",
+                    "O mais importante é que você se sinta acolhido(a) e seguro(a) para falar sobre o que te aflige. Sua paz e seu bem-estar são prioridade, sempre!"
+                ]
+            }
+        ],
+        "exercicios_realizados": [
+            "Respiração profunda 4-4-4",
+            "Ouvir música relaxante"
+        ]
+    },
+    "Daniel": {
+        "preferencias": {
+            "estilo_instrucao": "acolhedor"
+        },
+        "registro_humor": [],
+        "historico_conversas": [
+            {
+                "usuario": "oi olivia",
+                "olivia": [
+                    "Ops, tive um probleminha para processar isso agora. 💜",
+                    "Pode tentar de novo em instantes?"
+                ]
+            },
+            {
+                "usuario": "oi olivia",
+                "olivia": [
+                    "Ops, tive um probleminha para processar isso agora. 💜",
+                    "Pode tentar de novo em instantes?"
+                ]
+            },
+            {
+                "usuario": "sim",
+                "olivia": [
+                    "Ops, tive um probleminha para processar isso agora. 💜",
+                    "Pode tentar de novo em instantes?"
+                ]
+            },
+            {
+                "usuario": "oi olivia",
+                "olivia": [
+                    "Ops, tive um probleminha para processar isso agora. 💜",
+                    "Pode tentar de novo em instantes?"
+                ]
+            },
+            {
+                "usuario": "oi olivia",
+                "olivia": [
+                    "Ops, tive um probleminha para processar isso agora. 💜",
+                    "Pode tentar de novo em instantes?"
+                ]
+            },
+            {
+                "usuario": "oi olivia",
+                "olivia": [
+                    "Ops, tive um probleminha para processar isso agora. 💜",
+                    "Pode tentar de novo em instantes?"
+                ]
+            },
+            {
+                "usuario": "oi olivia",
+                "olivia": [
+                    "Ops, tive um probleminha para processar isso agora. 💜",
+                    "Pode tentar de novo em instantes?"
+                ]
+            }
+        ],
+        "exercicios_realizados": []
+    }
+}
