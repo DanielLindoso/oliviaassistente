@@ -15,7 +15,9 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:5500",
         "http://localhost:5500",
-        "https://olivia-fskx.onrender.com"
+        "https://olivia-fskx.onrender.com",
+        "https://oliviacalm.vercel.app/chat.html",
+        "https://oliviacalm.vercel.app/",
     ],
     allow_credentials=True,
     allow_methods=["*"],
