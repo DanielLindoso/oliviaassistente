@@ -3,7 +3,7 @@ const messageInput = document.getElementById("messageInput");
 const chatMessages = document.getElementById("chatMessages");
 const sendButton = document.getElementById("sendButton");
 
-const API_URL = "http://127.0.0.1:8000/api/chat";
+const API_URL = "https://olivia-fskx.onrender.com/api/chat";
 
 
 function adicionarMensagem(texto, tipo) {
