@@ -18,7 +18,7 @@ app.add_middleware(
         "https://olivia-fskx.onrender.com",
         "https://olivia-fskx.onrender.com/api/chat",
         "https://oliviacalm.vercel.app/chat.html",
-        "https://oliviacalm.vercel.app/",
+        "https://oliviacalm.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
