@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Olivia - Assistente Virtual</title>
+
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+
+    <main class="chat-container">
+
+        <header class="chat-header">
+            <div class="avatar">
+                O
+            </div>
+
+            <div class="header-info">
+                <h1>Olivia</h1>
+                <span>Assistente virtual</span>
+            </div>
+
+            <div class="status">
+                <span class="status-dot"></span>
+                Online
+            </div>
+        </header>
+
+
+        <section class="chat-messages" id="chatMessages">
+
+            <div class="message message-olivia">
+                <div class="message-avatar">
+                    O
+                </div>
+
+                <div class="message-content">
+                    <span class="message-name">Olivia</span>
+
+                    <p>
+                        Olá! 👋 Eu sou a Olivia.
+                        Como posso ajudar você hoje?
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+
+        <form class="chat-input-area" id="chatForm">
+
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="Digite sua mensagem..."
+                autocomplete="off"
+            >
+
+            <button type="submit" id="sendButton">
+                Enviar
+            </button>
+
+        </form>
+
+    </main>
+
+    <script src="./js/app.js"></script>
+
+</body>
+</html>
