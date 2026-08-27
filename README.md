@@ -49,14 +49,17 @@ A jornada principal escolhida para o MVP é:
 
 ## 📋 Backlog do MVP
 
-| # | Tarefa |
-|---|---|
-| 1 | Criar uma página inicial apresentando a proposta da Olivia |
-| 2 | Disponibilizar o acesso à tela de conversa |
-| 3 | Permitir o envio de mensagens pelo usuário |
-| 4 | Integrar a aplicação com a API de inteligência artificial |
-| 5 | Exibir a resposta da Olivia na conversa |
+## 📋 Backlog do MVP
 
+O backlog do MVP foi organizado no Trello em cinco atividades principais, todas concluídas:
+
+| # | Atividade | Status |
+|---|---|---|
+| 1 | Melhorar tratamento e experiência da conversa | Concluído |
+| 2 | Criar interface do chat | Concluído |
+| 3 | Integrar frontend com a API | Concluído |
+| 4 | Testes, documentação e DevOps | Concluído |
+| 5 | Criar interface web do chat | Concluído |
 ---
 
 ## ✅ Critérios de aceite
