@@ -47,7 +47,7 @@ A jornada principal escolhida para o MVP é:
 
 ---
 
-## 📋 Backlog do MVP
+
 
 ## 📋 Backlog do MVP
 
