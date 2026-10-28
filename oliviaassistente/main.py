@@ -1,84 +1,95 @@
-# Caminho do arquivo: main.py (Substitua completamente o conteúdo anterior)
-from database import engine, Base
+from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from typing import Optional
+
+from database import engine, Base, get_db
 import models
+import auth
+from core.olivia_service import gerar_resposta_olivia
 
-# Cria todas as tabelas na base de dados automaticamente caso não existam
+# Cria as tabelas na base de dados automaticamente
 Base.metadata.create_all(bind=engine)
-import mysql.connector
-from ui.menus import criar_usuario_menu, painel_principal_menu
-from ui.utils import exibir_cabecalho
 
-def buscar_usuarios_no_banco():
-    """Busca ID e Nome de todos os usuários diretamente no MySQL"""
-    try:
-        conexao = mysql.connector.connect(
-            host='localhost',
-            database='olivia_db',
-            user='root',
-            password='Senac2026'
+app = FastAPI(
+    title="Olívia Assistente API",
+    description="API do Projeto Integrador Olívia Assistente",
+    version="1.0"
+)
+
+# CORS liberado para o Frontend na Vercel
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Inclui as rotas de autenticação (/auth/register e /auth/login)
+app.include_router(auth.router)
+
+# Schema de validação para a rota de chat
+class ChatRequest(BaseModel):
+    message: str
+    user_id: Optional[int] = 1  # ID padrão enquanto o frontend implementa o login
+    conversation_id: Optional[int] = None
+
+@app.get("/")
+def health_check():
+    return {"status": "ok", "message": "API da Olívia está ativa!"}
+
+@app.post("/api/chat")
+def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
+    if not payload.message.strip():
+        raise HTTPException(status_code=400, detail="A mensagem não pode estar vazia.")
+
+    # 1. Recupera a conversa existente ou cria uma nova
+    if payload.conversation_id:
+        conversation = db.query(models.Conversation).filter(
+            models.Conversation.id == payload.conversation_id
+        ).first()
+        if not conversation:
+            raise HTTPException(status_code=404, detail="Conversa não encontrada.")
+    else:
+        titulo_conversa = payload.message[:30] + "..." if len(payload.message) > 30 else payload.message
+        conversation = models.Conversation(
+            user_id=payload.user_id,
+            title=titulo_conversa
         )
-        cursor = conexao.cursor()
-        cursor.execute("SELECT id_usuario, nome FROM usuario")
-        resultados = cursor.fetchall()  # Retorna uma lista de tuplas [(1, 'Daniel'), (2, 'Maria')]
-        return resultados
+        db.add(conversation)
+        db.commit()
+        db.refresh(conversation)
+
+    # 2. Persiste a mensagem enviada pelo utilizador
+    user_msg = models.Message(
+        conversation_id=conversation.id,
+        role="user",
+        content=payload.message
+    )
+    db.add(user_msg)
+
+    # 3. Gera a resposta através do serviço Gemini (Olívia)
+    try:
+        resposta_texto = gerar_resposta_olivia(payload.message)
     except Exception as e:
-        print(f"\n[Erro] Não foi possível carregar os dados do MySQL: {e}")
-        return []
-    finally:
-        if 'conexao' in locals() and conexao.is_connected():
-            cursor.close()
-            conexao.close()
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="Ocorreu uma instabilidade ao conectar com a Olívia. Tente novamente em instantes."
+        )
 
-def executar_sistema():
-    while True:
-        # Busca a lista atualizada de usuários no banco de dados
-        usuarios = buscar_usuarios_no_banco()
-        # Isolamos apenas os nomes para fins de exibição na tela
-        nomes_cadastrados = [u[1] for u in usuarios]
+    # 4. Persiste a resposta da assistente
+    bot_msg = models.Message(
+        conversation_id=conversation.id,
+        role="assistant",
+        content=resposta_texto
+    )
+    db.add(bot_msg)
+    db.commit()
 
-        exibir_cabecalho("OLIVIA - ASSISTENTE VIRTUAL 💜")
-        print('1. Entrar.')
-        print('2. Criar conta.')
-        print('3. Encerrar aplicativo.')
- 
-        opcao = input("\nEscolha uma opção: ").strip()
- 
-        if opcao == "1":
-            if not usuarios:
-                input("\nNenhum usuário cadastrado ainda no MySQL! Pressione Enter...")
-                continue
-            
-            print("\nUsuários cadastrados no Banco de Dados:")
-            for nome in nomes_cadastrados:
-                print(f"- {nome}")
-                
-            nome_login = input("\nDigite seu nome para entrar: ").strip()
-            
-            # Percorre a lista do MySQL para encontrar o ID correto de quem está logando
-            usuario_encontrado = None
-            for id_banco, nome_banco in usuarios:
-                if nome_banco.lower() == nome_login.lower():
-                    usuario_encontrado = (id_banco, nome_banco)
-                    break
-            
-            if usuario_encontrado:
-                id_logado, nome_logado = usuario_encontrado
-                print(f"\nConectando... Bem-vindo(a), {nome_logado}!")
-                # Passa o ID numérico e o Nome para o painel principal do menus.py atualizado
-                painel_principal_menu(id_logado, nome_logado)
-            else:
-                input("\nUsuário não encontrado no banco! Pressione Enter...")
-                
-        elif opcao == "2":
-            # Abre a tela de criação onde o data_manager cuidará do resto
-            criar_usuario_menu()
-            
-        elif opcao == "3":
-            print("\nAté logo! Olivia deseja uma ótima jornada 💜")
-            break
-            
-        else:
-            input("\nOpção inválida! Pressione Enter...")
-
-if __name__ == "__main__":
-    executar_sistema()
+    return {
+        "conversation_id": conversation.id,
+        "response": resposta_texto
+    }
