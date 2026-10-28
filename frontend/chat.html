@@ -3,40 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olívia - Assistente Virtual</title>
+    <title>Olívia Assistente</title>
+    <!-- Fonte Inter para visual moderno -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-    <div class="chat-container" id="chat-container">
-        <!-- Cabeçalho -->
-        <header class="chat-header">
-            <div class="user-info">
-                <span id="user-name-display">Olívia Assistente</span>
+<body class="app-layout">
+
+    <!-- Barra Lateral de Navegação -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <span class="brand-icon">✨</span>
+                <span class="brand-title">Olívia</span>
             </div>
-            <button id="logout-btn" class="logout-btn">Sair</button>
+            <button id="new-chat-btn" class="btn-new-chat">+ Nova Conversa</button>
+        </div>
+
+        <!-- Lista de Histórico de Conversas -->
+        <div class="conversations-history">
+            <span class="history-label">Suas Conversas</span>
+            <ul id="history-list" class="history-list">
+                <!-- Inserido dinamicamente pelo JavaScript -->
+            </ul>
+        </div>
+
+        <!-- Rodapé do Usuário -->
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div class="user-details">
+                    <span class="user-name" id="user-name-display">Usuário</span>
+                    <span class="user-status">Online</span>
+                </div>
+            </div>
+            <button id="logout-btn" class="btn-icon-logout" title="Sair">🚪</button>
+        </div>
+    </aside>
+
+    <!-- Área Principal do Chat -->
+    <main class="chat-main">
+        <!-- Cabeçalho do Chat -->
+        <header class="top-bar">
+            <div class="assistant-status">
+                <h1>Assistente Virtual Olívia</h1>
+                <p>Sempre pronta para te ouvir e ajudar</p>
+            </div>
         </header>
 
-        <!-- Área de Mensagens -->
-        <main class="chat-messages" id="chat-messages">
-            <div class="message bot-message">
-                Olá! 🖐️ Eu sou a Olívia. Como posso ajudar você hoje?
+        <!-- Container de Mensagens -->
+        <div class="chat-viewport" id="chat-messages">
+            <div class="message-row bot">
+                <div class="avatar">✨</div>
+                <div class="message-bubble">
+                    Olá! Eu sou a Olívia. Como posso apoiar você hoje?
+                </div>
             </div>
-        </main>
+        </div>
 
-        <!-- Formulário de Envio -->
-        <footer class="chat-input-container">
-            <form id="chat-form">
+        <!-- Rodapé com Caixa de Envio de Mensagem -->
+        <footer class="input-container">
+            <form id="chat-form" class="input-form">
                 <input 
                     type="text" 
                     id="message-input" 
-                    placeholder="Digite sua mensagem..." 
-                    autocomplete="off"
+                    placeholder="Escreva uma mensagem para a Olívia..." 
+                    autocomplete="off" 
                     required
                 />
-                <button type="submit" id="send-btn">Enviar</button>
+                <button type="submit" id="send-btn" class="btn-send">
+                    <span>Enviar</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                </button>
             </form>
         </footer>
-    </div>
+    </main>
 
     <script src="js/app.js"></script>
 </body>
