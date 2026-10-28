@@ -1,5 +1,9 @@
 # Caminho do arquivo: main.py (Substitua completamente o conteúdo anterior)
+from database import engine, Base
+import models
 
+# Cria todas as tabelas na base de dados automaticamente caso não existam
+Base.metadata.create_all(bind=engine)
 import mysql.connector
 from ui.menus import criar_usuario_menu, painel_principal_menu
 from ui.utils import exibir_cabecalho
