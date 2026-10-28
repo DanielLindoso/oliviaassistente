@@ -12,18 +12,19 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // 1. Gerenciamento do estado da interface (Logado x Não Logado)
+// 1. Gerenciamento do estado da interface (Logado x Não Logado)
 function checkAuthStatus() {
     const authSection = document.getElementById("auth-container");
     const chatSection = document.getElementById("chat-container");
     const userDisplay = document.getElementById("user-name-display");
 
-    if (currentUser && currentUser.access_token) {
-        if (authSection) authSection.style.display = "none";
-        if (chatSection) chatSection.style.display = "flex";
-        if (userDisplay) userDisplay.textContent = `Olá, ${currentUser.name}!`;
-    } else {
-        if (authSection) authSection.style.display = "block";
-        if (chatSection) chatSection.style.display = "none";
+    // Se estiver na página chat.html, exibe sempre a área do chat
+    if (chatSection) {
+        chatSection.style.display = "flex";
+    }
+
+    if (currentUser && currentUser.name && userDisplay) {
+        userDisplay.textContent = `Olá, ${currentUser.name}!`;
     }
 }
 
