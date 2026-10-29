@@ -27,8 +27,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Inclui as rotas de autenticação (/auth/register e /auth/login)
-app.include_router(auth.router)
+# REGISTRA O ROTEADOR COM O PREFIXO /auth
+app.include_router(auth.router, prefix="/auth", tags=["Autenticação"])
 
 # Schema de validação para a rota de chat
 class ChatRequest(BaseModel):
