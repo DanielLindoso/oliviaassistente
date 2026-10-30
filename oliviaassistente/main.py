@@ -9,7 +9,7 @@ import models
 import auth
 from core.olivia_service import gerar_resposta_olivia
 
-# Cria as tabelas na base de dados automaticamente
+# 1. Cria as tabelas na base de dados
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -18,22 +18,23 @@ app = FastAPI(
     version="1.0"
 )
 
-# CORS liberado para o Frontend na Vercel
+# 2. CONFIGURAÇÃO COMPLETA DE CORS (OBRIGATÓRIO FICAR ANTES DOS ROUTERS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Permite requisições de qualquer origem (Vercel, Localhost, etc.)
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
-# REGISTRA O ROTEADOR COM O PREFIXO /auth
+# 3. Registo de Routers
 app.include_router(auth.router, prefix="/auth", tags=["Autenticação"])
 
-# Schema de validação para a rota de chat
+# Schema de validação do Chat
 class ChatRequest(BaseModel):
     message: str
-    user_id: Optional[int] = 1  # ID padrão enquanto o frontend implementa o login
+    user_id: Optional[int] = 1
     conversation_id: Optional[int] = None
 
 @app.get("/")
@@ -45,24 +46,29 @@ def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
     if not payload.message.strip():
         raise HTTPException(status_code=400, detail="A mensagem não pode estar vazia.")
 
-    # 1. Recupera a conversa existente ou cria uma nova
+    # 1. Recupera a conversa ou cria uma nova
     if payload.conversation_id:
         conversation = db.query(models.Conversation).filter(
             models.Conversation.id == payload.conversation_id
         ).first()
         if not conversation:
-            raise HTTPException(status_code=404, detail="Conversa não encontrada.")
+            conversation = models.Conversation(
+                user_id=payload.user_id,
+                title=payload.message[:30]
+            )
+            db.add(conversation)
+            db.commit()
+            db.refresh(conversation)
     else:
-        titulo_conversa = payload.message[:30] + "..." if len(payload.message) > 30 else payload.message
         conversation = models.Conversation(
             user_id=payload.user_id,
-            title=titulo_conversa
+            title=payload.message[:30]
         )
         db.add(conversation)
         db.commit()
         db.refresh(conversation)
 
-    # 2. Persiste a mensagem enviada pelo utilizador
+    # 2. Guarda mensagem do utilizador
     user_msg = models.Message(
         conversation_id=conversation.id,
         role="user",
@@ -70,17 +76,13 @@ def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
     )
     db.add(user_msg)
 
-    # 3. Gera a resposta através do serviço Gemini (Olívia)
+    # 3. Resposta da Olívia via Gemini
     try:
         resposta_texto = gerar_resposta_olivia(payload.message)
     except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=500,
-            detail="Ocorreu uma instabilidade ao conectar com a Olívia. Tente novamente em instantes."
-        )
+        resposta_texto = "Olá! Tive uma pequena oscilação temporária ao conectar ao serviço Gemini. Pode tentar novamente?"
 
-    # 4. Persiste a resposta da assistente
+    # 4. Guarda a resposta e devolve ao frontend
     bot_msg = models.Message(
         conversation_id=conversation.id,
         role="assistant",
