@@ -4,7 +4,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from google import genai
+import google.generativeai as genai
 
 from database import engine, Base, get_db
 import models
@@ -268,15 +268,15 @@ def chat_with_olivia(msg: ChatMessage):
         )
 
     try:
-        client = genai.Client(api_key=api_key)
-
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=msg.message,
-            config={
-                "system_instruction": SYSTEM_PROMPT
-            }
+        genai.configure(api_key=api_key)
+        
+        # Configuração do modelo com a instrução do sistema
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            system_instruction=SYSTEM_PROMPT
         )
+
+        response = model.generate_content(msg.message)
 
         return {
             "response": response.text, 
