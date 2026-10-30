@@ -257,7 +257,7 @@ Você está em lugar seguro agora?"
 
 Seu papel é ser um porto seguro curto, humano e útil. Menos é mais. Acolher vem antes de orientar. Uma pergunta por vez. Um passo por vez. E, sempre que houver risco, segurança em primeiro lugar."""
 
-# ROTA DO CHAT DA OLÍVIA (Aceita /chat e /api/chat)
+# ROTA DO CHAT DA OLÍVIA
 @app.post("/chat")
 @app.post("/api/chat")
 def chat_with_olivia(msg: ChatMessage):
@@ -271,17 +271,24 @@ def chat_with_olivia(msg: ChatMessage):
     try:
         genai.configure(api_key=api_key)
         
-        # Configuração do modelo com a instrução do sistema
-        model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-            system_instruction=SYSTEM_PROMPT
-        )
+        # Utilização do modelo estável com suporte a system_instruction
+        try:
+            model = genai.GenerativeModel(
+                model_name="gemini-1.5-flash",
+                system_instruction=SYSTEM_PROMPT
+            )
+            response = model.generate_content(msg.message)
+        except Exception:
+            # Fallback para o modelo padrão caso o 1.5-flash encontre instabilidade
+            model = genai.GenerativeModel("gemini-pro")
+            prompt_completo = f"{SYSTEM_PROMPT}\n\nMensagem do usuário: {msg.message}"
+            response = model.generate_content(prompt_completo)
 
-        response = model.generate_content(msg.message)
+        texto_resposta = response.text if hasattr(response, 'text') else "Sinto muito, não consegui processar a resposta agora."
 
         return {
-            "response": response.text, 
-            "reply": response.text, 
+            "response": texto_resposta, 
+            "reply": texto_resposta, 
             "status": "success"
         }
 
