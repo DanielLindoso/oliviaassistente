@@ -271,21 +271,35 @@ def chat_with_olivia(msg: ChatMessage):
     try:
         genai.configure(api_key=api_key.strip())
         
-        # Utiliza o modelo gemini-1.5-flash
-        model = genai.GenerativeModel("gemini-1.5-flash")
-
-        # Concatena o System Prompt com a mensagem do usuário
         prompt_completo = f"{SYSTEM_PROMPT}\n\nMensagem do usuário: {msg.message}"
 
-        response = model.generate_content(prompt_completo)
+        # Lista de nomes de modelos válidos em ordem de preferência
+        modelos_para_testar = [
+            "gemini-1.5-flash-latest",
+            "models/gemini-1.5-flash-latest",
+            "gemini-2.5-flash",
+            "gemini-1.5-pro"
+        ]
 
-        texto_resposta = getattr(response, "text", None)
-        if not texto_resposta:
-            texto_resposta = "Não foi possível gerar uma resposta no momento."
+        response = None
+        ultimo_erro = None
+
+        for nome_modelo in modelos_para_testar:
+            try:
+                model = genai.GenerativeModel(nome_modelo)
+                response = model.generate_content(prompt_completo)
+                if response and hasattr(response, 'text') and response.text:
+                    break
+            except Exception as e:
+                ultimo_erro = e
+                continue
+
+        if not response or not getattr(response, "text", None):
+            raise Exception(f"Nenhum modelo respondeu com sucesso. Último erro: {ultimo_erro}")
 
         return {
-            "response": texto_resposta, 
-            "reply": texto_resposta, 
+            "response": response.text, 
+            "reply": response.text, 
             "status": "success"
         }
 
