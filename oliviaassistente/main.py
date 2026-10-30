@@ -22,7 +22,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# No main.py
 app.include_router(auth.router, prefix="/auth", tags=["Autenticação"])
+app.include_router(auth.router, tags=["Autenticação Direta"])
 
 # Schemas Pydantic
 class ChatRequest(BaseModel):
