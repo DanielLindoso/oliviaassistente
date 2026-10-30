@@ -265,35 +265,33 @@ def chat_with_olivia(msg: ChatMessage):
     if not api_key:
         raise HTTPException(
             status_code=500,
-            detail="Chave GEMINI_API_KEY não configurada no servidor."
+            detail="A variável GEMINI_API_KEY não foi encontrada no ambiente do Render."
         )
 
     try:
-        genai.configure(api_key=api_key)
+        genai.configure(api_key=api_key.strip())
         
-        # Concatena o prompt de sistema com a mensagem do utilizador
+        # Utiliza o modelo gemini-1.5-flash
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
+        # Concatena o System Prompt com a mensagem do usuário
         prompt_completo = f"{SYSTEM_PROMPT}\n\nMensagem do usuário: {msg.message}"
 
-        # Tenta carregar o modelo de forma robusta
-        try:
-            model = genai.GenerativeModel("gemini-1.5-flash")
-            response = model.generate_content(prompt_completo)
-        except Exception as e_flash:
-            print(f"Fallback gemini-1.5-flash falhou ({e_flash}), a tentar gemini-pro...")
-            model = genai.GenerativeModel("gemini-pro")
-            response = model.generate_content(prompt_completo)
+        response = model.generate_content(prompt_completo)
 
-        resposta_texto = response.text if hasattr(response, 'text') and response.text else "Desculpe, não consegui gerar uma resposta agora."
+        texto_resposta = getattr(response, "text", None)
+        if not texto_resposta:
+            texto_resposta = "Não foi possível gerar uma resposta no momento."
 
         return {
-            "response": resposta_texto, 
-            "reply": resposta_texto, 
+            "response": texto_resposta, 
+            "reply": texto_resposta, 
             "status": "success"
         }
 
     except Exception as err:
-        print(f"Erro detalhado na rota /chat: {err}")
+        print(f"Erro completo no Gemini: {err}")
         raise HTTPException(
             status_code=500,
-            detail=f"Erro na integração com o Gemini: {str(err)}"
+            detail=f"Falha Gemini: {type(err).__name__} - {str(err)}"
         )
