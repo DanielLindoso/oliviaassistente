@@ -51,7 +51,22 @@ function initNavigation() {
     });
 }
 
-// 2. AUTENTICAÇÃO COM VERIFICAÇÃO REAL NO BANCO DE DADOS
+// Função auxiliar para exibir mensagens visuais de status sem alert()
+function showAuthMessage(message, type = "error") {
+    const alertBox = document.getElementById("auth-message");
+    if (!alertBox) return;
+
+    alertBox.textContent = message;
+    alertBox.className = `auth-alert ${type}`;
+    alertBox.classList.remove("hidden");
+}
+
+function hideAuthMessage() {
+    const alertBox = document.getElementById("auth-message");
+    if (alertBox) alertBox.classList.add("hidden");
+}
+
+// 2. AUTENTICAÇÃO COM COMPATIBILIDADE DE ROTAS E MENSAGENS VISUAIS
 function setupAuthListeners() {
     const loginForm = document.getElementById("login-form");
     const registerForm = document.getElementById("register-form");
@@ -62,6 +77,7 @@ function setupAuthListeners() {
     if (showRegister) {
         showRegister.addEventListener("click", (e) => {
             e.preventDefault();
+            hideAuthMessage();
             loginForm.classList.add("hidden");
             registerForm.classList.remove("hidden");
         });
@@ -70,54 +86,80 @@ function setupAuthListeners() {
     if (showLogin) {
         showLogin.addEventListener("click", (e) => {
             e.preventDefault();
+            hideAuthMessage();
             registerForm.classList.add("hidden");
             loginForm.classList.remove("hidden");
         });
     }
 
-    // REGISTRO RIGOROSO
+    // REGISTRO DE CONTA
     if (registerForm) {
         registerForm.addEventListener("submit", async (e) => {
             e.preventDefault();
+            hideAuthMessage();
+
             const name = document.getElementById("reg-name").value;
             const email = document.getElementById("reg-email").value;
             const password = document.getElementById("reg-password").value;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                // Tentativa na rota padrão /auth/register
+                let response = await fetch(`${API_BASE_URL}/auth/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ name, email, password })
                 });
 
+                // Fallback automático para a rota /register caso o backend não use prefixo
+                if (response.status === 404) {
+                    response = await fetch(`${API_BASE_URL}/register`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name, email, password })
+                    });
+                }
+
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert("Conta criada com sucesso! Agora faça login com suas credenciais.");
-                    registerForm.classList.add("hidden");
-                    loginForm.classList.remove("hidden");
+                    showAuthMessage("Conta criada com sucesso! Redirecionando para login...", "success");
+                    setTimeout(() => {
+                        hideAuthMessage();
+                        registerForm.classList.add("hidden");
+                        loginForm.classList.remove("hidden");
+                    }, 2000);
                 } else {
-                    alert(`Falha no cadastro: ${data.detail || "Não foi possível criar a conta."}`);
+                    showAuthMessage(data.detail || "Não foi possível criar a conta.", "error");
                 }
             } catch (err) {
-                alert("Erro ao conectar com o servidor. Verifique sua conexão e tente novamente.");
+                showAuthMessage("Erro ao conectar ao servidor. O serviço pode estar inicializando.", "error");
             }
         });
     }
 
-    // LOGIN RIGOROSO (Valida e-mail e senha no banco)
+    // LOGIN
     if (loginForm) {
         loginForm.addEventListener("submit", async (e) => {
             e.preventDefault();
+            hideAuthMessage();
+
             const email = document.getElementById("login-email").value;
             const password = document.getElementById("login-password").value;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                let response = await fetch(`${API_BASE_URL}/auth/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password })
                 });
+
+                if (response.status === 404) {
+                    response = await fetch(`${API_BASE_URL}/login`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email, password })
+                    });
+                }
 
                 const data = await response.json();
 
@@ -126,10 +168,10 @@ function setupAuthListeners() {
                     localStorage.setItem("olivia_user", JSON.stringify(data));
                     checkAuthStatus();
                 } else {
-                    alert(`Acesso negado: ${data.detail || "E-mail ou senha incorretos."}`);
+                    showAuthMessage(data.detail || "E-mail ou senha incorretos.", "error");
                 }
             } catch (err) {
-                alert("Servidor indisponível ou inacessível no momento. Tente novamente em instantes.");
+                showAuthMessage("Servidor inacessível no momento. Tente novamente em instantes.", "error");
             }
         });
     }
@@ -143,17 +185,6 @@ function setupAuthListeners() {
             checkAuthStatus();
         });
     }
-}
-
-function loginUserLocally(name, email) {
-    currentUser = {
-        name: name || "Usuário",
-        email: email,
-        user_id: 1,
-        access_token: "local_session_token"
-    };
-    localStorage.setItem("olivia_user", JSON.stringify(currentUser));
-    checkAuthStatus();
 }
 
 // 3. CHAT COM A OLÍVIA

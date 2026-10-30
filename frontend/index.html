@@ -14,49 +14,52 @@
 <body class="app-body">
 
     <!-- TELA 1: AUTENTICAÇÃO (LOGIN / REGISTRO) -->
-    <div id="auth-screen" class="auth-wrapper">
-        <div class="auth-card">
-            <div class="auth-brand">
-                <span class="logo-spark">✨</span>
-                <h1>Olívia Assistente</h1>
-                <p>Sua plataforma pessoal de acolhimento e organização</p>
-            </div>
-
-            <!-- Formulário de Login -->
-            <form id="login-form" class="auth-form active">
-                <h2>Acessar sua Conta</h2>
-                <div class="form-group">
-                    <label for="login-email">E-mail</label>
-                    <input type="email" id="login-email" placeholder="seuemail@exemplo.com" required />
-                </div>
-                <div class="form-group">
-                    <label for="login-password">Senha</label>
-                    <input type="password" id="login-password" placeholder="••••••••" required />
-                </div>
-                <button type="submit" class="btn-primary btn-block">Entrar</button>
-                <p class="auth-toggle">Não tem uma conta? <a href="#" id="show-register">Cadastre-se grátis</a></p>
-            </form>
-
-            <!-- Formulário de Registro -->
-            <form id="register-form" class="auth-form hidden">
-                <h2>Criar uma Conta</h2>
-                <div class="form-group">
-                    <label for="reg-name">Nome Completo</label>
-                    <input type="text" id="reg-name" placeholder="Como quer ser chamado(a)?" required />
-                </div>
-                <div class="form-group">
-                    <label for="reg-email">E-mail</label>
-                    <input type="email" id="reg-email" placeholder="seuemail@exemplo.com" required />
-                </div>
-                <div class="form-group">
-                    <label for="reg-password">Senha</label>
-                    <input type="password" id="reg-password" placeholder="••••••••" required />
-                </div>
-                <button type="submit" class="btn-primary btn-block">Criar Conta</button>
-                <p class="auth-toggle">Já possui conta? <a href="#" id="show-login">Faça Login</a></p>
-            </form>
+<div id="auth-screen" class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-brand">
+            <span class="logo-spark">✨</span>
+            <h1>Olívia Assistente</h1>
+            <p>Sua plataforma pessoal de acolhimento e organização</p>
         </div>
+
+        <!-- Mensagem de Alerta Visual (Substitui o alert()) -->
+        <div id="auth-message" class="auth-alert hidden"></div>
+
+        <!-- Formulário de Login -->
+        <form id="login-form" class="auth-form active">
+            <h2>Acessar sua Conta</h2>
+            <div class="form-group">
+                <label for="login-email">E-mail</label>
+                <input type="email" id="login-email" placeholder="seuemail@exemplo.com" required />
+            </div>
+            <div class="form-group">
+                <label for="login-password">Senha</label>
+                <input type="password" id="login-password" placeholder="••••••••" required />
+            </div>
+            <button type="submit" class="btn-primary btn-block">Entrar</button>
+            <p class="auth-toggle">Não tem uma conta? <a href="#" id="show-register">Cadastre-se grátis</a></p>
+        </form>
+
+        <!-- Formulário de Registro -->
+        <form id="register-form" class="auth-form hidden">
+            <h2>Criar uma Conta</h2>
+            <div class="form-group">
+                <label for="reg-name">Nome Completo</label>
+                <input type="text" id="reg-name" placeholder="Como quer ser chamado(a)?" required />
+            </div>
+            <div class="form-group">
+                <label for="reg-email">E-mail</label>
+                <input type="email" id="reg-email" placeholder="seuemail@exemplo.com" required />
+            </div>
+            <div class="form-group">
+                <label for="reg-password">Senha</label>
+                <input type="password" id="reg-password" placeholder="••••••••" required />
+            </div>
+            <button type="submit" class="btn-primary btn-block">Criar Conta</button>
+            <p class="auth-toggle">Já possui conta? <a href="#" id="show-login">Faça Login</a></p>
+        </form>
     </div>
+</div>
 
     <!-- TELA 2: DASHBOARD PRINCIPAL (SPA) -->
     <div id="main-app" class="app-layout hidden">
