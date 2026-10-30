@@ -257,8 +257,9 @@ Você está em lugar seguro agora?"
 
 Seu papel é ser um porto seguro curto, humano e útil. Menos é mais. Acolher vem antes de orientar. Uma pergunta por vez. Um passo por vez. E, sempre que houver risco, segurança em primeiro lugar."""
 
-# ROTA DO CHAT DA OLÍVIA
+# ROTA DO CHAT DA OLÍVIA (Aceita /chat e /api/chat)
 @app.post("/chat")
+@app.post("/api/chat")
 def chat_with_olivia(msg: ChatMessage):
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
