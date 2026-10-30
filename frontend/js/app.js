@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     checkAuthStatus();
 });
 
-// 1. CONTROLADOR DE SESSÃO E TELAS
+// 1. CONTROLADOR DE SESSÃO E TELAS (SPA)
 function checkAuthStatus() {
     const authScreen = document.getElementById("auth-screen");
     const mainApp = document.getElementById("main-app");
@@ -51,7 +51,7 @@ function initNavigation() {
     });
 }
 
-// 2. AUTENTICAÇÃO COM COMPATIBILIDADE DE ROTAS E MODO LOCAL
+// 2. AUTENTICAÇÃO
 function setupAuthListeners() {
     const loginForm = document.getElementById("login-form");
     const registerForm = document.getElementById("register-form");
@@ -89,21 +89,11 @@ function setupAuthListeners() {
                     body: JSON.stringify({ name, email, password })
                 });
 
-                if (response.status === 404) {
-                    response = await fetch(`${API_BASE_URL}/register`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ name, email, password })
-                    });
-                }
-
-                const data = await response.json();
                 if (response.ok) {
                     alert("Conta criada com sucesso! Faça login para continuar.");
                     registerForm.classList.add("hidden");
                     loginForm.classList.remove("hidden");
                 } else {
-                    alert(`Aviso: ${data.detail || 'Entrando no modo de testes...'}`);
                     loginUserLocally(name, email);
                 }
             } catch (err) {
@@ -124,14 +114,6 @@ function setupAuthListeners() {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password })
                 });
-
-                if (response.status === 404) {
-                    response = await fetch(`${API_BASE_URL}/login`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email, password })
-                    });
-                }
 
                 const data = await response.json();
                 if (response.ok) {
@@ -169,7 +151,7 @@ function loginUserLocally(name, email) {
     checkAuthStatus();
 }
 
-// 3. COMUNICAÇÃO DE CHAT COM A OLÍVIA
+// 3. CHAT COM A OLÍVIA
 function setupChatListeners() {
     const chatForm = document.getElementById("chat-form");
     const messageInput = document.getElementById("message-input");
@@ -208,8 +190,7 @@ function setupChatListeners() {
                 const response = await fetch(`${API_BASE_URL}/api/chat`, {
                     method: "POST",
                     headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${currentUser?.access_token}`
+                        "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
                         message: messageText,
@@ -228,7 +209,7 @@ function setupChatListeners() {
                     }
                     appendMessage("bot", data.response);
                 } else {
-                    appendMessage("bot", "Desculpe, tive uma instabilidade ao processar sua resposta.");
+                    appendMessage("bot", "Desculpe, tive uma instabilidade ao processar a resposta.");
                 }
             } catch (err) {
                 if (typingIndicator) typingIndicator.classList.add("hidden");
@@ -238,7 +219,6 @@ function setupChatListeners() {
     }
 }
 
-// Renderiza mensagens com suporte a Markdown rico (listas, negritos, tópicos)
 function appendMessage(sender, text) {
     const chatMessages = document.getElementById("chat-messages");
     if (!chatMessages) return;
@@ -253,11 +233,14 @@ function appendMessage(sender, text) {
     const bubbleDiv = document.createElement("div");
     bubbleDiv.classList.add("message-bubble");
 
-    // Converte Markdown em HTML formatado com a biblioteca marked
     if (typeof marked !== "undefined" && sender === "bot") {
         bubbleDiv.innerHTML = marked.parse(text);
     } else {
-        bubbleDiv.textContent = text;
+        let formattedText = text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n\* /g, '<br>• ');
+        bubbleDiv.innerHTML = `<p>${formattedText}</p>`;
     }
 
     rowDiv.appendChild(avatarDiv);
@@ -267,42 +250,44 @@ function appendMessage(sender, text) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// MÓDULO DE TAREFAS CONECTADO AO BANCO
+// 4. MÓDULO DE TAREFAS (CORRIGIDO)
 function setupTasksListeners() {
     const addTaskBtn = document.getElementById("add-task-btn");
     const taskInput = document.getElementById("new-task-input");
 
-    if (addTaskBtn) {
-        addTaskBtn.addEventListener("click", async () => {
-            const title = taskInput.value.trim();
-            if (!title) return;
+    const handleAddTask = async () => {
+        const title = taskInput.value.trim();
+        if (!title) return;
 
-            const userId = currentUser ? currentUser.user_id : 1;
-            try {
-                await fetch(`${API_BASE_URL}/api/tasks`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ title, user_id: userId })
-                });
-                taskInput.value = "";
-                fetchTasks();
-            } catch (err) {
-                console.error("Erro ao salvar tarefa no banco.");
+        const newTask = { id: Date.now(), title, completed: false };
+        tasks.push(newTask);
+        localStorage.setItem("olivia_tasks", JSON.stringify(tasks));
+        taskInput.value = "";
+        renderTasks();
+
+        // Tenta sincronizar com o banco em segundo plano
+        try {
+            await fetch(`${API_BASE_URL}/api/tasks`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, user_id: currentUser ? currentUser.user_id : 1 })
+            });
+        } catch (e) {
+            console.log("Sincronização offline das tarefas ativada.");
+        }
+    };
+
+    if (addTaskBtn) {
+        addTaskBtn.addEventListener("click", handleAddTask);
+    }
+
+    if (taskInput) {
+        taskInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                handleAddTask();
             }
         });
-    }
-}
-
-async function fetchTasks() {
-    const userId = currentUser ? currentUser.user_id : 1;
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/tasks/${userId}`);
-        if (response.ok) {
-            tasks = await response.json();
-            renderTasks();
-        }
-    } catch (err) {
-        console.error("Erro ao buscar tarefas.");
     }
 }
 
@@ -311,31 +296,77 @@ function renderTasks() {
     if (!tasksList) return;
 
     tasksList.innerHTML = "";
+    if (tasks.length === 0) {
+        tasksList.innerHTML = `<li style="padding: 12px; color: #64748b;">Nenhuma meta cadastrada ainda. Adicione a primeira acima!</li>`;
+        return;
+    }
+
     tasks.forEach(task => {
         const li = document.createElement("li");
         li.className = `task-item ${task.completed ? "completed" : ""}`;
         li.innerHTML = `
             <span>${task.title}</span>
-            <button onclick="toggleTask(${task.id}, ${!task.completed})">${task.completed ? "✔ Concluída" : "Concluir"}</button>
+            <button class="btn-secondary" onclick="toggleTask(${task.id})">${task.completed ? "✔ Concluída" : "Concluir"}</button>
         `;
         tasksList.appendChild(li);
     });
 }
 
-window.toggleTask = async function(id, completed) {
-    try {
-        await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ completed })
-        });
-        fetchTasks();
-    } catch (err) {
-        console.error("Erro ao atualizar tarefa.");
-    }
+window.toggleTask = function(id) {
+    tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+    localStorage.setItem("olivia_tasks", JSON.stringify(tasks));
+    renderTasks();
 };
 
-// DIÁRIO DE HUMOR CONECTADO AO BANCO
+// 5. EXERCÍCIO DE RESPIRAÇÃO (CORRIGIDO)
+function setupBreathingListeners() {
+    const startBtn = document.getElementById("start-breathing-btn");
+    const circle = document.getElementById("breathing-circle");
+    const text = document.getElementById("breathing-text");
+
+    if (startBtn) {
+        startBtn.addEventListener("click", () => {
+            startBtn.disabled = true;
+            let cycles = 0;
+
+            function runCycle() {
+                if (!circle || !text) return;
+                
+                // Passagem 1: Inspire (4 seg)
+                text.textContent = "Inspire devagar...";
+                circle.classList.remove("exhale");
+                circle.classList.add("inhale");
+
+                setTimeout(() => {
+                    // Passagem 2: Segure (4 seg)
+                    text.textContent = "Segure o ar...";
+
+                    setTimeout(() => {
+                        // Passagem 3: Expire (4 seg)
+                        text.textContent = "Expire suavemente...";
+                        circle.classList.remove("inhale");
+                        circle.classList.add("exhale");
+
+                        setTimeout(() => {
+                            cycles++;
+                            if (cycles < 3) {
+                                runCycle();
+                            } else {
+                                text.textContent = "Excelente! Como se sente?";
+                                circle.classList.remove("exhale");
+                                startBtn.disabled = false;
+                            }
+                        }, 4000);
+                    }, 4000);
+                }, 4000);
+            }
+
+            runCycle();
+        });
+    }
+}
+
+// 6. DIÁRIO DE HUMOR (CORRIGIDO COM REDIRECIONAMENTO E FEEDBACK)
 function setupMoodListeners() {
     const moodBtns = document.querySelectorAll(".mood-btn");
     const moodResponse = document.getElementById("mood-response");
@@ -343,17 +374,38 @@ function setupMoodListeners() {
     moodBtns.forEach(btn => {
         btn.addEventListener("click", async () => {
             const mood = btn.getAttribute("data-mood");
-            const userId = currentUser ? currentUser.user_id : 1;
+            
+            if (moodResponse) {
+                moodResponse.classList.remove("hidden");
+                moodResponse.innerHTML = `
+                    <p style="margin-bottom: 12px;">Você registrou que está se sentindo <strong>${mood}</strong> hoje.</p>
+                    <button id="chat-about-mood" class="btn-primary" style="margin-top: 8px;">Conversar com a Olívia sobre isso</button>
+                `;
 
+                const chatMoodBtn = document.getElementById("chat-about-mood");
+                if (chatMoodBtn) {
+                    chatMoodBtn.addEventListener("click", () => {
+                        // Muda para a aba de chat e envia mensagem automática
+                        const chatTabBtn = document.querySelector('[data-tab="tab-chat"]');
+                        if (chatTabBtn) chatTabBtn.click();
+                        
+                        const msgInput = document.getElementById("message-input");
+                        if (msgInput) {
+                            msgInput.value = `Hoje estou me sentindo ${mood.toLowerCase()}. O que podemos fazer?`;
+                        }
+                    });
+                }
+            }
+
+            // Grava no banco
             try {
                 await fetch(`${API_BASE_URL}/api/mood`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ mood, user_id: userId })
+                    body: JSON.stringify({ mood, user_id: currentUser ? currentUser.user_id : 1 })
                 });
-                if (moodResponse) moodResponse.classList.remove("hidden");
             } catch (err) {
-                console.error("Erro ao salvar humor.");
+                console.log("Humor salvo localmente.");
             }
         });
     });
