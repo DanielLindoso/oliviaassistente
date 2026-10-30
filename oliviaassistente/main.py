@@ -2,18 +2,18 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from typing import Optional, List
-from datetime import datetime
+from typing import Optional
+from passlib.context import CryptContext
 
 from database import engine, Base, get_db
 import models
-import auth
-from core.olivia_service import gerar_resposta_olivia
 
+# Inicializa o banco de dados
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Olívia Assistente API", version="1.0")
 
+# Configuração total do CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,34 +22,79 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# No main.py
-app.include_router(auth.router, prefix="/auth", tags=["Autenticação"])
-app.include_router(auth.router, tags=["Autenticação Direta"])
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Schemas Pydantic
+# Schemas de Autenticação
+class UserRegister(BaseModel):
+    name: str
+    email: str
+    password: str
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
+
+# Função auxiliar de senha
+def get_password_hash(password: str):
+    return pwd_context.hash(password)
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+@app.get("/")
+def health_check():
+    return {"status": "ok", "message": "API da Olívia está ativa!"}
+
+# ROTAS DE AUTENTICAÇÃO (Mapeadas em todas as variações possíveis)
+@app.post("/auth/register")
+@app.post("/register")
+def register_user(user: UserRegister, db: Session = Depends(get_db)):
+    existing_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=400, 
+            detail="Este e-mail já está cadastrado no sistema."
+        )
+
+    hashed_pw = get_password_hash(user.password)
+    new_user = models.User(
+        name=user.name, 
+        email=user.email, 
+        password_hash=hashed_pw
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {"status": "success", "message": "Usuário cadastrado com sucesso!"}
+
+@app.post("/auth/login")
+@app.post("/login")
+def login_user(user: UserLogin, db: Session = Depends(get_db)):
+    db_user = db.query(models.User).filter(models.User.email == user.email).first()
+    if not db_user or not verify_password(user.password, db_user.password_hash):
+        raise HTTPException(
+            status_code=401, 
+            detail="E-mail ou senha incorretos."
+        )
+
+    return {
+        "user_id": db_user.id,
+        "name": db_user.name,
+        "email": db_user.email,
+        "access_token": f"token_{db_user.id}"
+    }
+
+# ROTA DE CHAT
 class ChatRequest(BaseModel):
     message: str
     user_id: Optional[int] = 1
     conversation_id: Optional[int] = None
 
-class TaskCreate(BaseModel):
-    title: str
-    user_id: Optional[int] = 1
-
-class TaskUpdate(BaseModel):
-    completed: bool
-
-class MoodCreate(BaseModel):
-    mood: str
-    user_id: Optional[int] = 1
-
-@app.get("/")
-def health_check():
-    return {"status": "ok", "message": "API da Olívia está ativa com suporte a Banco de Dados!"}
-
-# ROTAS DE CHAT
 @app.post("/api/chat")
 def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
+    from core.olivia_service import gerar_resposta_olivia
+
     if not payload.message.strip():
         raise HTTPException(status_code=400, detail="Mensagem vazia.")
 
@@ -79,33 +124,3 @@ def chat_endpoint(payload: ChatRequest, db: Session = Depends(get_db)):
     db.commit()
 
     return {"conversation_id": conversation.id, "response": resposta_texto}
-
-# ROTAS DE TAREFAS (PERSISTENTES)
-@app.get("/api/tasks/{user_id}")
-def get_tasks(user_id: int, db: Session = Depends(get_db)):
-    return db.query(models.Task).filter(models.Task.user_id == user_id).all()
-
-@app.post("/api/tasks")
-def create_task(payload: TaskCreate, db: Session = Depends(get_db)):
-    new_task = models.Task(user_id=payload.user_id, title=payload.title)
-    db.add(new_task)
-    db.commit()
-    db.refresh(new_task)
-    return new_task
-
-@app.put("/api/tasks/{task_id}")
-def toggle_task(task_id: int, payload: TaskUpdate, db: Session = Depends(get_db)):
-    task = db.query(models.Task).filter(models.Task.id == task_id).first()
-    if not task:
-        raise HTTPException(status_code=404, detail="Tarefa não encontrada.")
-    task.completed = payload.completed
-    db.commit()
-    return task
-
-# ROTAS DE DIÁRIO DE HUMOR
-@app.post("/api/mood")
-def log_mood(payload: MoodCreate, db: Session = Depends(get_db)):
-    mood_entry = models.MoodLog(user_id=payload.user_id, mood=payload.mood)
-    db.add(mood_entry)
-    db.commit()
-    return {"status": "success", "message": "Humor registrado no banco!"}
