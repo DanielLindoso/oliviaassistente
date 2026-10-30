@@ -265,31 +265,34 @@ def chat_with_olivia(msg: ChatMessage):
     if not api_key:
         raise HTTPException(
             status_code=500,
-            detail="Chave GEMINI_API_KEY não configurada nas variáveis de ambiente do Render."
+            detail="Chave GEMINI_API_KEY não configurada no servidor."
         )
 
     try:
         genai.configure(api_key=api_key)
         
-        # Inicializa o modelo gemini-1.5-flash com as instruções do sistema
-        model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-            system_instruction=SYSTEM_PROMPT
-        )
+        # Concatena o prompt de sistema com a mensagem do utilizador
+        prompt_completo = f"{SYSTEM_PROMPT}\n\nMensagem do usuário: {msg.message}"
 
-        response = model.generate_content(msg.message)
+        # Tenta carregar o modelo de forma robusta
+        try:
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            response = model.generate_content(prompt_completo)
+        except Exception as e_flash:
+            print(f"Fallback gemini-1.5-flash falhou ({e_flash}), a tentar gemini-pro...")
+            model = genai.GenerativeModel("gemini-pro")
+            response = model.generate_content(prompt_completo)
 
-        if not response.text:
-            raise Exception("A resposta do Gemini retornou vazia.")
+        resposta_texto = response.text if hasattr(response, 'text') and response.text else "Desculpe, não consegui gerar uma resposta agora."
 
         return {
-            "response": response.text, 
-            "reply": response.text, 
+            "response": resposta_texto, 
+            "reply": resposta_texto, 
             "status": "success"
         }
 
     except Exception as err:
-        print(f"Erro detalhado no Gemini: {str(err)}")
+        print(f"Erro detalhado na rota /chat: {err}")
         raise HTTPException(
             status_code=500,
             detail=f"Erro na integração com o Gemini: {str(err)}"
