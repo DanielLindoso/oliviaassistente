@@ -265,36 +265,32 @@ def chat_with_olivia(msg: ChatMessage):
     if not api_key:
         raise HTTPException(
             status_code=500,
-            detail="Chave GEMINI_API_KEY não configurada no servidor."
+            detail="Chave GEMINI_API_KEY não configurada nas variáveis de ambiente do Render."
         )
 
     try:
         genai.configure(api_key=api_key)
         
-        # Utilização do modelo estável com suporte a system_instruction
-        try:
-            model = genai.GenerativeModel(
-                model_name="gemini-1.5-flash",
-                system_instruction=SYSTEM_PROMPT
-            )
-            response = model.generate_content(msg.message)
-        except Exception:
-            # Fallback para o modelo padrão caso o 1.5-flash encontre instabilidade
-            model = genai.GenerativeModel("gemini-pro")
-            prompt_completo = f"{SYSTEM_PROMPT}\n\nMensagem do usuário: {msg.message}"
-            response = model.generate_content(prompt_completo)
+        # Inicializa o modelo gemini-1.5-flash com as instruções do sistema
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            system_instruction=SYSTEM_PROMPT
+        )
 
-        texto_resposta = response.text if hasattr(response, 'text') else "Sinto muito, não consegui processar a resposta agora."
+        response = model.generate_content(msg.message)
+
+        if not response.text:
+            raise Exception("A resposta do Gemini retornou vazia.")
 
         return {
-            "response": texto_resposta, 
-            "reply": texto_resposta, 
+            "response": response.text, 
+            "reply": response.text, 
             "status": "success"
         }
 
     except Exception as err:
-        print(f"Erro no Gemini: {err}")
+        print(f"Erro detalhado no Gemini: {str(err)}")
         raise HTTPException(
             status_code=500,
-            detail=f"Erro ao processar resposta com a IA: {str(err)}"
+            detail=f"Erro na integração com o Gemini: {str(err)}"
         )
