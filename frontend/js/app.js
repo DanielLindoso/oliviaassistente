@@ -238,6 +238,7 @@ function setupChatListeners() {
     }
 }
 
+// Renderiza mensagens com suporte a Markdown rico (listas, negritos, tópicos)
 function appendMessage(sender, text) {
     const chatMessages = document.getElementById("chat-messages");
     if (!chatMessages) return;
@@ -252,12 +253,12 @@ function appendMessage(sender, text) {
     const bubbleDiv = document.createElement("div");
     bubbleDiv.classList.add("message-bubble");
 
-    let formattedText = text
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/\n\* /g, '<br>• ');
-
-    bubbleDiv.innerHTML = `<p>${formattedText}</p>`;
+    // Converte Markdown em HTML formatado com a biblioteca marked
+    if (typeof marked !== "undefined" && sender === "bot") {
+        bubbleDiv.innerHTML = marked.parse(text);
+    } else {
+        bubbleDiv.textContent = text;
+    }
 
     rowDiv.appendChild(avatarDiv);
     rowDiv.appendChild(bubbleDiv);
@@ -266,21 +267,42 @@ function appendMessage(sender, text) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// 4. MÓDULO DE TAREFAS
+// MÓDULO DE TAREFAS CONECTADO AO BANCO
 function setupTasksListeners() {
     const addTaskBtn = document.getElementById("add-task-btn");
     const taskInput = document.getElementById("new-task-input");
 
     if (addTaskBtn) {
-        addTaskBtn.addEventListener("click", () => {
+        addTaskBtn.addEventListener("click", async () => {
             const title = taskInput.value.trim();
             if (!title) return;
 
-            tasks.push({ id: Date.now(), title, completed: false });
-            localStorage.setItem("olivia_tasks", JSON.stringify(tasks));
-            taskInput.value = "";
-            renderTasks();
+            const userId = currentUser ? currentUser.user_id : 1;
+            try {
+                await fetch(`${API_BASE_URL}/api/tasks`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title, user_id: userId })
+                });
+                taskInput.value = "";
+                fetchTasks();
+            } catch (err) {
+                console.error("Erro ao salvar tarefa no banco.");
+            }
         });
+    }
+}
+
+async function fetchTasks() {
+    const userId = currentUser ? currentUser.user_id : 1;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/tasks/${userId}`);
+        if (response.ok) {
+            tasks = await response.json();
+            renderTasks();
+        }
+    } catch (err) {
+        console.error("Erro ao buscar tarefas.");
     }
 }
 
@@ -294,56 +316,45 @@ function renderTasks() {
         li.className = `task-item ${task.completed ? "completed" : ""}`;
         li.innerHTML = `
             <span>${task.title}</span>
-            <button onclick="toggleTask(${task.id})">${task.completed ? "✔ Concluída" : "Concluir"}</button>
+            <button onclick="toggleTask(${task.id}, ${!task.completed})">${task.completed ? "✔ Concluída" : "Concluir"}</button>
         `;
         tasksList.appendChild(li);
     });
 }
 
-window.toggleTask = function(id) {
-    tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
-    localStorage.setItem("olivia_tasks", JSON.stringify(tasks));
-    renderTasks();
+window.toggleTask = async function(id, completed) {
+    try {
+        await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ completed })
+        });
+        fetchTasks();
+    } catch (err) {
+        console.error("Erro ao atualizar tarefa.");
+    }
 };
 
-// 5. EXERCÍCIO DE RESPIRAÇÃO
-function setupBreathingListeners() {
-    const startBtn = document.getElementById("start-breathing-btn");
-    const circle = document.getElementById("breathing-circle");
-    const text = document.getElementById("breathing-text");
-
-    if (startBtn) {
-        startBtn.addEventListener("click", () => {
-            startBtn.disabled = true;
-            text.textContent = "Inspire...";
-            if (circle) circle.classList.add("inhale");
-
-            setTimeout(() => {
-                text.textContent = "Segure...";
-                setTimeout(() => {
-                    text.textContent = "Expire...";
-                    if (circle) {
-                        circle.classList.remove("inhale");
-                        circle.classList.add("exhale");
-                    }
-                    setTimeout(() => {
-                        text.textContent = "Concluído!";
-                        startBtn.disabled = false;
-                    }, 4000);
-                }, 4000);
-            }, 4000);
-        });
-    }
-}
-
-// 6. DIÁRIO DE HUMOR
+// DIÁRIO DE HUMOR CONECTADO AO BANCO
 function setupMoodListeners() {
     const moodBtns = document.querySelectorAll(".mood-btn");
     const moodResponse = document.getElementById("mood-response");
 
     moodBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            if (moodResponse) moodResponse.classList.remove("hidden");
+        btn.addEventListener("click", async () => {
+            const mood = btn.getAttribute("data-mood");
+            const userId = currentUser ? currentUser.user_id : 1;
+
+            try {
+                await fetch(`${API_BASE_URL}/api/mood`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ mood, user_id: userId })
+                });
+                if (moodResponse) moodResponse.classList.remove("hidden");
+            } catch (err) {
+                console.error("Erro ao salvar humor.");
+            }
         });
     });
 }
