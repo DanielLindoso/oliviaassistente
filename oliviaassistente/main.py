@@ -35,14 +35,20 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
-def get_password_hash(password: str):
-    # Trunca a palavra-passe para no máximo 72 bytes para evitar exceção do bcrypt
-    password_bytes = password.encode('utf-8')[:72]
-    return pwd_context.hash(password_bytes.decode('utf-8', errors='ignore'))
+import bcrypt
 
-def verify_password(plain_password: str, hashed_password: str):
-    password_bytes = plain_password.encode('utf-8')[:72]
-    return pwd_context.verify(password_bytes.decode('utf-8', errors='ignore'), hashed_password)
+def get_password_hash(password: str) -> str:
+    # Trunca a senha para no máximo 72 bytes
+    pwd_bytes = password.encode('utf-8')[:72]
+    # Gera o salt e o hash diretamente com a biblioteca bcrypt
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(pwd_bytes, salt)
+    return hashed.decode('utf-8')
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    pwd_bytes = plain_password.encode('utf-8')[:72]
+    hash_bytes = hashed_password.encode('utf-8')
+    return bcrypt.checkpw(pwd_bytes, hash_bytes)
 
 @app.get("/")
 def health_check():
