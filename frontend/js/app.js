@@ -51,7 +51,7 @@ function initNavigation() {
     });
 }
 
-// 2. AUTENTICAÇÃO
+// 2. AUTENTICAÇÃO COM VERIFICAÇÃO REAL NO BANCO DE DADOS
 function setupAuthListeners() {
     const loginForm = document.getElementById("login-form");
     const registerForm = document.getElementById("register-form");
@@ -75,6 +75,7 @@ function setupAuthListeners() {
         });
     }
 
+    // REGISTRO RIGOROSO
     if (registerForm) {
         registerForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -83,25 +84,28 @@ function setupAuthListeners() {
             const password = document.getElementById("reg-password").value;
 
             try {
-                let response = await fetch(`${API_BASE_URL}/auth/register`, {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ name, email, password })
                 });
 
+                const data = await response.json();
+
                 if (response.ok) {
-                    alert("Conta criada com sucesso! Faça login para continuar.");
+                    alert("Conta criada com sucesso! Agora faça login com suas credenciais.");
                     registerForm.classList.add("hidden");
                     loginForm.classList.remove("hidden");
                 } else {
-                    loginUserLocally(name, email);
+                    alert(`Falha no cadastro: ${data.detail || "Não foi possível criar a conta."}`);
                 }
             } catch (err) {
-                loginUserLocally(name, email);
+                alert("Erro ao conectar com o servidor. Verifique sua conexão e tente novamente.");
             }
         });
     }
 
+    // LOGIN RIGOROSO (Valida e-mail e senha no banco)
     if (loginForm) {
         loginForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -109,22 +113,23 @@ function setupAuthListeners() {
             const password = document.getElementById("login-password").value;
 
             try {
-                let response = await fetch(`${API_BASE_URL}/auth/login`, {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ email, password })
                 });
 
                 const data = await response.json();
+
                 if (response.ok) {
                     currentUser = data;
                     localStorage.setItem("olivia_user", JSON.stringify(data));
                     checkAuthStatus();
                 } else {
-                    loginUserLocally(email.split("@")[0], email);
+                    alert(`Acesso negado: ${data.detail || "E-mail ou senha incorretos."}`);
                 }
             } catch (err) {
-                loginUserLocally(email.split("@")[0], email);
+                alert("Servidor indisponível ou inacessível no momento. Tente novamente em instantes.");
             }
         });
     }
