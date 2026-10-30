@@ -6,3 +6,4 @@ passlib[bcrypt]
 bcrypt
 google-generativeai
 mysql-connector-python
+python-dotenv
