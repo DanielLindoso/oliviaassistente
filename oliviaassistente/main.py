@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from typing import Optional
 from passlib.context import CryptContext
 
-from database import engine, Base, get_db
-import models
+from oliviaassistente.database import engine, Base, get_db
+from oliviaassistente import models
 
 # Inicializa o banco de dados
 Base.metadata.create_all(bind=engine)
