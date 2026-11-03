@@ -40,6 +40,7 @@ class UserLogin(BaseModel):
 class ChatMessage(BaseModel):
     message: str
     user_id: int = None
+    conversation_id: int = None
 
 def get_password_hash(password: str) -> str:
     pwd_bytes = password.encode('utf-8')[:72]
@@ -60,7 +61,6 @@ def health_check():
 @app.post("/register")
 def register_user(user: UserRegister, db: Session = Depends(get_db)):
     try:
-        # Verifica se o e-mail já existe no banco antes de cadastrar
         existing_user = db.query(models.User).filter(models.User.email == user.email).first()
         if existing_user:
             raise HTTPException(
@@ -91,7 +91,7 @@ def register_user(user: UserRegister, db: Session = Depends(get_db)):
             status_code=400,
             detail="Este e-mail já está em uso ou ocorreu um erro no cadastro."
         )
-    
+
 @app.post("/auth/login")
 @app.post("/login")
 def login_user(user: UserLogin, db: Session = Depends(get_db)):
@@ -262,7 +262,7 @@ Seu papel é ser um porto seguro curto, humano e útil. Menos é mais. Acolher v
 # ROTA DO CHAT DA OLÍVIA
 @app.post("/chat")
 @app.post("/api/chat")
-def chat_with_olivia(msg: ChatMessage):
+def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise HTTPException(
@@ -275,7 +275,6 @@ def chat_with_olivia(msg: ChatMessage):
         
         prompt_completo = f"{SYSTEM_PROMPT}\n\nMensagem do usuário: {msg.message}"
 
-        # Lista de nomes de modelos válidos em ordem de preferência
         modelos_para_testar = [
             "gemini-1.5-flash-latest",
             "models/gemini-1.5-flash-latest",
@@ -299,15 +298,72 @@ def chat_with_olivia(msg: ChatMessage):
         if not response or not getattr(response, "text", None):
             raise Exception(f"Nenhum modelo respondeu com sucesso. Último erro: {ultimo_erro}")
 
+        resposta_texto = response.text
+
+        # Se houver um user_id associado, salva no banco de dados usando seu models.py
+        conversation_id = msg.conversation_id
+        if msg.user_id:
+            # 1. Localiza ou cria a conversa do usuário
+            if not conversation_id:
+                conv = db.query(models.Conversation).filter(models.Conversation.user_id == msg.user_id).order_by(models.Conversation.created_at.desc()).first()
+                if not conv:
+                    conv = models.Conversation(user_id=msg.user_id, title="Conversa Principal")
+                    db.add(conv)
+                    db.commit()
+                    db.refresh(conv)
+                conversation_id = conv.id
+
+            # 2. Salva a mensagem do usuário
+            user_msg = models.Message(
+                conversation_id=conversation_id,
+                role="user",
+                content=msg.message
+            )
+            db.add(user_msg)
+
+            # 3. Salva a resposta da Olívia (assistant)
+            olivia_msg = models.Message(
+                conversation_id=conversation_id,
+                role="assistant",
+                content=resposta_texto
+            )
+            db.add(olivia_msg)
+            db.commit()
+
         return {
-            "response": response.text, 
-            "reply": response.text, 
+            "response": resposta_texto, 
+            "reply": resposta_texto, 
+            "conversation_id": conversation_id,
             "status": "success"
         }
 
     except Exception as err:
+        db.rollback()
         print(f"Erro completo no Gemini: {err}")
         raise HTTPException(
             status_code=500,
             detail=f"Falha Gemini: {type(err).__name__} - {str(err)}"
+        )
+
+# ROTA PARA BUSCAR HISTÓRICO DE MENSAGENS DO USUÁRIO
+@app.get("/chat/history/{user_id}")
+@app.get("/api/chat/history/{user_id}")
+def get_chat_history(user_id: int, db: Session = Depends(get_db)):
+    try:
+        # Busca a conversa mais recente do usuário
+        conv = db.query(models.Conversation).filter(models.Conversation.user_id == user_id).order_by(models.Conversation.created_at.desc()).first()
+        if not conv:
+            return {"status": "success", "messages": []}
+
+        messages = db.query(models.Message).filter(models.Message.conversation_id == conv.id).order_by(models.Message.timestamp.asc()).all()
+        return {
+            "status": "success",
+            "conversation_id": conv.id,
+            "messages": [{"role": m.role, "sender": "user" if m.role == "user" else "olivia", "content": m.content, "timestamp": m.timestamp} for m in messages]
+        }
+    except Exception as err:
+        print(f"Erro ao buscar histórico: {err}")
+        raise HTTPException(
+            status_code=500,
+            detail="Erro ao carregar histórico de conversas."
         )
