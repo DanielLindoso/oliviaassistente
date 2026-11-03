@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import google.generativeai as genai
 import time
+from typing import Optional
 
 from database import engine, Base, get_db
 import models
@@ -37,11 +38,15 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
-# Modelo do Chat
+# Modelo flexível para o Chat
 class ChatMessage(BaseModel):
     message: str
-    user_id: int = None
-    conversation_id: int = None
+    text: Optional[str] = None
+    user_id: Optional[int] = None
+    conversation_id: Optional[int] = None
+
+    class Config:
+        extra = "ignore"
 
 def get_password_hash(password: str) -> str:
     pwd_bytes = password.encode('utf-8')[:72]
@@ -269,6 +274,14 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=500,
             detail="A variável GEMINI_API_KEY não foi encontrada no ambiente do Render."
+        )
+
+    # Captura flexível da mensagem (aceita 'message' ou 'text')
+    texto_usuario = msg.message or msg.text
+    if not texto_usuario:
+        raise HTTPException(
+            status_code=400,
+            detail="A mensagem do usuário não pode estar vazia."
         )
 
     genai.configure(api_key=api_key.strip())
