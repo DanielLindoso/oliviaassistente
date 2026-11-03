@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import google.generativeai as genai
+import time
 
 from database import engine, Base, get_db
 import models
@@ -259,7 +260,7 @@ Você está em lugar seguro agora?"
 
 Seu papel é ser um porto seguro curto, humano e útil. Menos é mais. Acolher vem antes de orientar. Uma pergunta por vez. Um passo por vez. E, sempre que houver risco, segurança em primeiro lugar."""
 
-# ROTA DO CHAT DA OLÍVIA
+# ROTA DO CHAT DA OLÍVIA (Com salvamento no Banco e Retentativa em caso de 503)
 @app.post("/chat")
 @app.post("/api/chat")
 def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
@@ -270,21 +271,22 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
             detail="A variável GEMINI_API_KEY não foi encontrada no ambiente do Render."
         )
 
-    try:
-        genai.configure(api_key=api_key.strip())
-        
-        prompt_completo = f"{SYSTEM_PROMPT}\n\nMensagem do usuário: {msg.message}"
+    genai.configure(api_key=api_key.strip())
+    prompt_completo = f"{SYSTEM_PROMPT}\n\nMensagem do usuário: {msg.message}"
 
-        modelos_para_testar = [
-            "gemini-1.5-flash-latest",
-            "models/gemini-1.5-flash-latest",
-            "gemini-2.5-flash",
-            "gemini-1.5-pro"
-        ]
+    modelos_para_testar = [
+        "gemini-1.5-flash-latest",
+        "models/gemini-1.5-flash-latest",
+        "gemini-2.5-flash",
+        "gemini-1.5-pro"
+    ]
 
-        response = None
-        ultimo_erro = None
+    response = None
+    ultimo_erro = None
+    max_retentativas = 3  # Número de vezes que vai tentar reenviar em caso de 503/instabilidade
 
+    # 1. Tentativa de comunicação com o Gemini com mecanismo de Retry automático
+    for tentativa in range(1, max_retentativas + 1):
         for nome_modelo in modelos_para_testar:
             try:
                 model = genai.GenerativeModel(nome_modelo)
@@ -293,17 +295,25 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
                     break
             except Exception as e:
                 ultimo_erro = e
+                # Se for erro de indisponibilidade (503/overloaded), aguarda e tenta novamente
+                if "503" in str(e) or "overloaded" in str(e).lower():
+                    time.sleep(1)  # Aguarda 1 segundo antes da próxima tentativa
                 continue
 
-        if not response or not getattr(response, "text", None):
-            raise Exception(f"Nenhum modelo respondeu com sucesso. Último erro: {ultimo_erro}")
+        if response and getattr(response, "text", None):
+            break  # Resposta obtida com sucesso!
 
+    # 2. Resposta de fallback amigável caso todas as retentativas falhem (sem expor erro técnico)
+    if not response or not getattr(response, "text", None):
+        print(f"Erro completo no Gemini após {max_retentativas} tentativas: {ultimo_erro}")
+        resposta_texto = "Estou recebendo muitas mensagens neste momento. Pode repetir o que disse para mim, por favor?"
+    else:
         resposta_texto = response.text
 
-        # Se houver um user_id associado, salva no banco de dados usando seu models.py
-        conversation_id = msg.conversation_id
-        if msg.user_id:
-            # 1. Localiza ou cria a conversa do usuário
+    # 3. Salva no SQLite se houver user_id
+    conversation_id = msg.conversation_id
+    if msg.user_id:
+        try:
             if not conversation_id:
                 conv = db.query(models.Conversation).filter(models.Conversation.user_id == msg.user_id).order_by(models.Conversation.created_at.desc()).first()
                 if not conv:
@@ -313,7 +323,7 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
                     db.refresh(conv)
                 conversation_id = conv.id
 
-            # 2. Salva a mensagem do usuário
+            # Mensagem do usuário
             user_msg = models.Message(
                 conversation_id=conversation_id,
                 role="user",
@@ -321,7 +331,7 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
             )
             db.add(user_msg)
 
-            # 3. Salva a resposta da Olívia (assistant)
+            # Resposta da Olívia
             olivia_msg = models.Message(
                 conversation_id=conversation_id,
                 role="assistant",
@@ -329,21 +339,16 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
             )
             db.add(olivia_msg)
             db.commit()
+        except Exception as db_err:
+            db.rollback()
+            print(f"Erro ao salvar mensagem no banco: {db_err}")
 
-        return {
-            "response": resposta_texto, 
-            "reply": resposta_texto, 
-            "conversation_id": conversation_id,
-            "status": "success"
-        }
-
-    except Exception as err:
-        db.rollback()
-        print(f"Erro completo no Gemini: {err}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Falha Gemini: {type(err).__name__} - {str(err)}"
-        )
+    return {
+        "response": resposta_texto, 
+        "reply": resposta_texto, 
+        "conversation_id": conversation_id,
+        "status": "success"
+    }
 
 # ROTA PARA BUSCAR HISTÓRICO DE MENSAGENS DO USUÁRIO
 @app.get("/chat/history/{user_id}")
