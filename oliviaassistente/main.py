@@ -60,11 +60,12 @@ def health_check():
 @app.post("/register")
 def register_user(user: UserRegister, db: Session = Depends(get_db)):
     try:
+        # Verifica se o e-mail já existe no banco antes de cadastrar
         existing_user = db.query(models.User).filter(models.User.email == user.email).first()
         if existing_user:
             raise HTTPException(
                 status_code=400, 
-                detail="Este e-mail já está cadastrado no sistema."
+                detail="Este e-mail já está cadastrado no sistema. Faça login para acessar."
             )
 
         hashed_pw = get_password_hash(user.password)
@@ -81,15 +82,16 @@ def register_user(user: UserRegister, db: Session = Depends(get_db)):
         return {"status": "success", "message": "Usuário cadastrado com sucesso!"}
     
     except HTTPException as http_err:
+        db.rollback()
         raise http_err
     except Exception as err:
         db.rollback()
         print(f"Erro interno no registro: {err}")
         raise HTTPException(
-            status_code=500,
-            detail=f"Erro interno no servidor: {str(err)}"
+            status_code=400,
+            detail="Este e-mail já está em uso ou ocorreu um erro no cadastro."
         )
-
+    
 @app.post("/auth/login")
 @app.post("/login")
 def login_user(user: UserLogin, db: Session = Depends(get_db)):
