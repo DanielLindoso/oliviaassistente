@@ -91,6 +91,7 @@ async function handleLogin(e) {
   if (!email || !password) return;
 
   try {
+    // Tenta primeiro a rota /auth/login e faz fallback para /login
     let res = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
