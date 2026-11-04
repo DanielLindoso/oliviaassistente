@@ -128,15 +128,21 @@ async function handleLogin(e) {
 }
 
 // Cadastro SPA
+// Cadastro SPA com feedback visual na interface
 async function handleCadastro(e) {
   if (e) e.preventDefault();
 
   const alertBox = document.getElementById("cadastro-alert");
-  if (alertBox) alertBox.style.display = "none";
+  if (alertBox) {
+    alertBox.style.display = "none";
+    alertBox.className = "alert-box alert-danger";
+  }
 
   const name = document.getElementById("reg-name")?.value.trim();
   const email = document.getElementById("reg-email")?.value.trim();
   const password = document.getElementById("reg-password")?.value.trim();
+
+  if (!name || !email || !password) return;
 
   try {
     let res = await fetch(`${API_BASE_URL}/auth/register`, {
@@ -156,17 +162,28 @@ async function handleCadastro(e) {
     const data = await res.json();
 
     if (res.ok) {
-      alert("Cadastro concluído com sucesso! Faça login para acessar.");
+      // Exibe alerta de sucesso direto na tela de login
+      const loginAlert = document.getElementById("login-alert");
+      if (loginAlert) {
+        loginAlert.innerText = "Cadastro realizado com sucesso! Faça login para continuar.";
+        loginAlert.className = "alert-box alert-success";
+        loginAlert.style.display = "block";
+      }
+      
+      // Limpa os campos e navega suavemente para a tela de login
+      document.getElementById("cadastro-form")?.reset();
       navigateTo("screen-login");
     } else {
       if (alertBox) {
-        alertBox.innerText = data.detail || "Erro no cadastro.";
+        alertBox.innerText = data.detail || "Erro ao realizar o cadastro.";
+        alertBox.className = "alert-box alert-danger";
         alertBox.style.display = "block";
       }
     }
   } catch (err) {
     if (alertBox) {
       alertBox.innerText = "Erro de conexão com o servidor.";
+      alertBox.className = "alert-box alert-danger";
       alertBox.style.display = "block";
     }
   }
