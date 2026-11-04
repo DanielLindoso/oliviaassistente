@@ -1,227 +1,294 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Olívia Assistente - Plataforma de Bem-Estar</title>
-    
-    <!-- Fontes e Ícones -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-</head>
-<body class="app-body">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Olivia Assistente - Apoio Emocional</title>
 
-    <!-- TELA 1: AUTENTICAÇÃO (LOGIN / REGISTRO) -->
-<div id="auth-screen" class="auth-wrapper">
-    <div class="auth-card">
-        <div class="auth-brand">
-            <span class="logo-spark">✨</span>
-            <h1>Olívia Assistente</h1>
-            <p>Sua plataforma pessoal de acolhimento e organização</p>
+  <!-- Fontes & Ícones Atualizados -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="./js/app.js" defer></script>
+</head>
+<body>
+
+  <!-- 1. PÁGINA INICIAL (HOME) -->
+  <div id="screen-home" class="view-screen active">
+    <div class="home-container">
+      <header class="home-header">
+        <div class="logo-brand">
+          <div class="logo-icon"><i class="fa-solid fa-spa"></i></div>
+          <span>Olivia</span>
+        </div>
+        <div>
+          <button class="btn-secondary" onclick="navigateTo('screen-login')">Entrar</button>
+        </div>
+      </header>
+
+      <main class="hero-section">
+        <div class="hero-content">
+          <h1>Olá! Eu sou a Olivia <i class="fa-solid fa-heart" style="color: var(--purple-main);"></i></h1>
+          <p>Sua assistente de auxílio emocional, pronta para te apoiar nos momentos de ansiedade com cuidado e escuta.</p>
+          <button class="btn-primary" onclick="navigateTo('screen-cadastro')">
+            Começar agora <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+        <div class="avatar-wrapper">
+          <div class="avatar-placeholder">
+            <i class="fa-solid fa-user-astronaut" style="font-size: 5.5rem; color: var(--purple-main);"></i>
+          </div>
+        </div>
+      </main>
+
+      <section class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-comments"></i></div>
+          <h3>Converse com a Olivia</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 10px;">Espaço seguro e humanizado para desabafar a qualquer hora.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-leaf"></i></div>
+          <h3>Realize atividades</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 10px;">Exercícios guiados de respiração e regulação emocional.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <h3>Acompanhe seu progresso</h3>
+          <p style="color: var(--text-muted); font-size: 0.92rem; margin-top: 10px;">Visualização clara da sua evolução diária.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- 2. LOGIN -->
+  <div id="screen-login" class="view-screen">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="logo-icon" style="margin: 0 auto 10px auto;"><i class="fa-solid fa-spa"></i></div>
+        <div class="auth-header">
+          <h2>Bem-vinda de volta!</h2>
+          <p>Faça login para continuar sua jornada</p>
+        </div>
+        
+        <div id="login-alert" class="alert-box alert-danger"></div>
+        
+        <form id="login-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="login-email">E-mail ou usuário</label>
+            <input type="email" id="login-email" class="input-field" placeholder="Seu e-mail registrado" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Senha</label>
+            <input type="password" id="login-password" class="input-field" placeholder="Sua senha" required>
+          </div>
+          <div class="form-footer">
+            <label style="cursor: pointer;"><input type="checkbox" id="remember-me"> Lembrar-me</label>
+            <a href="#" onclick="alert('Recuperação de senha em breve.')">Esqueceu a senha?</a>
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%;">Entrar</button>
+        </form>
+        
+        <p style="margin-top: 24px; font-size: 0.92rem; color: var(--text-muted);">
+          Não tem uma conta? <a href="#" onclick="navigateTo('screen-cadastro')" style="color: var(--purple-main); font-weight: 600;">Criar nova conta</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. CADASTRO -->
+  <div id="screen-cadastro" class="view-screen">
+    <div class="auth-wrapper">
+      <div class="auth-card">
+        <div class="logo-icon" style="margin: 0 auto 10px auto;"><i class="fa-solid fa-spa"></i></div>
+        <div class="auth-header">
+          <h2>Criar sua conta</h2>
+          <p>É rápido, gratuito e seguro!</p>
+        </div>
+        
+        <div id="cadastro-alert" class="alert-box alert-danger"></div>
+        
+        <form id="cadastro-form" onsubmit="handleCadastro(event)">
+          <div class="form-group">
+            <label for="reg-name">Nome completo</label>
+            <input type="text" id="reg-name" class="input-field" placeholder="Seu nome" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-email">E-mail</label>
+            <input type="email" id="reg-email" class="input-field" placeholder="seuemail@exemplo.com" required>
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Senha</label>
+            <input type="password" id="reg-password" class="input-field" placeholder="Sua senha" required>
+          </div>
+          <button type="submit" class="btn-primary" style="width: 100%;">Cadastrar</button>
+        </form>
+        
+        <p style="margin-top: 24px; font-size: 0.92rem; color: var(--text-muted);">
+          Já tem uma conta? <a href="#" onclick="navigateTo('screen-login')" style="color: var(--purple-main); font-weight: 600;">Entrar</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTAINER DASHBOARD COM SIDEBAR INTERATIVA -->
+  <div id="app-dashboard-wrapper" class="app-layout" style="display: none;">
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="logo-icon"><i class="fa-solid fa-spa"></i></div>
+        <span>Olivia</span>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li id="menu-chat" class="active" onclick="switchDashboardTab('screen-chat')"><a><i class="fa-solid fa-comment"></i> Chat</a></li>
+        <li id="menu-atividades" onclick="switchDashboardTab('screen-atividades')"><a><i class="fa-solid fa-list-check"></i> Atividades</a></li>
+        <li id="menu-historico" onclick="switchDashboardTab('screen-historico')"><a><i class="fa-solid fa-clock-rotate-left"></i> Histórico</a></li>
+        <li id="menu-progresso" onclick="switchDashboardTab('screen-progresso')"><a><i class="fa-solid fa-chart-pie"></i> Progresso</a></li>
+        <li id="menu-perfil" onclick="switchDashboardTab('screen-perfil')"><a><i class="fa-solid fa-user"></i> Perfil</a></li>
+        <li id="menu-config" onclick="switchDashboardTab('screen-config')"><a><i class="fa-solid fa-gear"></i> Configurações</a></li>
+      </ul>
+      
+      <div style="margin-top: auto; padding-top: 20px;">
+        <a onclick="showLogoutModal()" style="color: rgba(255,255,255,0.75); cursor: pointer; display: flex; align-items: center; gap: 14px; font-weight: 600;">
+          <i class="fa-solid fa-right-from-bracket"></i> Sair
+        </a>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <!-- 4. CHAT COM OLIVIA -->
+      <section id="screen-chat" class="dashboard-tab">
+        <div class="chat-container">
+          <div class="chat-header">
+            <div class="logo-icon"><i class="fa-solid fa-robot"></i></div>
+            <div>
+              <h3 style="color: var(--purple-dark);" id="chat-user-greeting">Olá!</h3>
+              <p style="color: var(--text-muted); font-size: 0.88rem;">Como você está se sentindo hoje?</p>
+            </div>
+          </div>
+          
+          <div class="chat-messages" id="chat-messages-container">
+            <div class="message-bubble olivia">
+              Estou aqui para te ouvir e ajudar no que precisar hoje. Pode me contar como você está se sentindo.
+            </div>
+          </div>
+          
+          <div class="chat-input-area">
+            <input type="text" id="chat-input-field" class="input-field" placeholder="Digite sua mensagem...">
+            <button class="btn-primary" onclick="handleSendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. ATIVIDADES DIÁRIAS -->
+      <section id="screen-atividades" class="dashboard-tab" style="display: none;">
+        <h2 style="color: var(--purple-dark); margin-bottom: 8px;">Suas Atividades!</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Pequenas ações, grandes diferenças <i class="fa-solid fa-heart" style="color: var(--purple-main);"></i></p>
+        
+        <div class="activity-card">
+          <div class="activity-info">
+            <div class="activity-icon"><i class="fa-solid fa-wind"></i></div>
+            <div>
+              <h4 style="font-size: 1.1rem; color: var(--purple-dark);">Exercício de Respiração</h4>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">5 min • Reduz a ansiedade</p>
+            </div>
+          </div>
+          <!-- Exercício de Respiração -->
+        <button class="btn-primary" onclick="startBreathingExercise()">Iniciar</button>
         </div>
 
-        <!-- Mensagem de Alerta Visual (Substitui o alert()) -->
-        <div id="auth-message" class="auth-alert hidden"></div>
+        <div class="activity-card">
+          <div class="activity-info">
+            <div class="activity-icon"><i class="fa-solid fa-book-open"></i></div>
+            <div>
+              <h4 style="font-size: 1.1rem; color: var(--purple-dark);">Diário da Gratidão</h4>
+              <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Escreva 3 coisas boas do seu dia</p>
+            </div>
+          </div>
+          <!-- Diário da Gratidão -->
+        <button class="btn-primary" onclick="startGratitudeExercise()">Iniciar</button>
+        </div>
+      </section>
 
-        <!-- Formulário de Login -->
-        <form id="login-form" class="auth-form active">
-            <h2>Acessar sua Conta</h2>
-            <div class="form-group">
-                <label for="login-email">E-mail</label>
-                <input type="email" id="login-email" placeholder="seuemail@exemplo.com" required />
-            </div>
-            <div class="form-group">
-                <label for="login-password">Senha</label>
-                <input type="password" id="login-password" placeholder="••••••••" required />
-            </div>
-            <button type="submit" class="btn-primary btn-block">Entrar</button>
-            <p class="auth-toggle">Não tem uma conta? <a href="#" id="show-register">Cadastre-se grátis</a></p>
-        </form>
-
-        <!-- Formulário de Registro -->
-        <form id="register-form" class="auth-form hidden">
-            <h2>Criar uma Conta</h2>
-            <div class="form-group">
-                <label for="reg-name">Nome Completo</label>
-                <input type="text" id="reg-name" placeholder="Como quer ser chamado(a)?" required />
-            </div>
-            <div class="form-group">
-                <label for="reg-email">E-mail</label>
-                <input type="email" id="reg-email" placeholder="seuemail@exemplo.com" required />
-            </div>
-            <div class="form-group">
-                <label for="reg-password">Senha</label>
-                <input type="password" id="reg-password" placeholder="••••••••" required />
-            </div>
-            <button type="submit" class="btn-primary btn-block">Criar Conta</button>
-            <p class="auth-toggle">Já possui conta? <a href="#" id="show-login">Faça Login</a></p>
-        </form>
-    </div>
-</div>
-
-    <!-- TELA 2: DASHBOARD PRINCIPAL (SPA) -->
-    <div id="main-app" class="app-layout hidden">
+      <!-- 6. DASHBOARD / PROGRESSO -->
+      <section id="screen-progresso" class="dashboard-tab" style="display: none;">
+        <h2 style="color: var(--purple-dark); margin-bottom: 8px;">Seu Progresso</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Acompanhe sua jornada de bem-estar</p>
         
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="brand">
-                    <span class="logo-spark">✨</span>
-                    <span class="brand-name">Olívia</span>
-                </div>
-            </div>
+        <div class="dashboard-stats">
+          <div class="stat-card">
+            <div class="stat-number">12</div>
+            <div><p style="color: var(--text-muted); font-weight: 600;">Conversas Realizadas</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">8</div>
+            <div><p style="color: var(--text-muted); font-weight: 600;">Atividades Concluídas</p></div>
+          </div>
+        </div>
 
-            <nav class="sidebar-nav">
-                <button class="nav-btn active" data-tab="tab-chat">
-                    <span class="icon">💬</span>
-                    <span>Conversar com a Olívia</span>
-                </button>
-                <button class="nav-btn" data-tab="tab-tasks">
-                    <span class="icon">🎯</span>
-                    <span>Minhas Tarefas</span>
-                </button>
-                <button class="nav-btn" data-tab="tab-breathing">
-                    <span class="icon">🧘</span>
-                    <span>Exercício de Respiração</span>
-                </button>
-                <button class="nav-btn" data-tab="tab-mood">
-                    <span class="icon">📊</span>
-                    <span>Diário de Humor</span>
-                </button>
-            </nav>
+        <!-- 6. DASHBOARD / PROGRESSO -->
+      <section id="screen-progresso" class="dashboard-tab" style="display: none;">
+        <h2 style="color: var(--purple-dark); margin-bottom: 8px;">Seu Progresso</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Acompanhe sua jornada de bem-estar</p>
+        
+        <div class="dashboard-stats">
+          <div class="stat-card">
+            <div class="stat-number" id="stat-conversas-count">0</div>
+            <div><p style="color: var(--text-muted); font-weight: 600;">Mensagens Trocadas</p></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="stat-atividades-count">0</div>
+            <div><p style="color: var(--text-muted); font-weight: 600;">Atividades Concluídas</p></div>
+          </div>
+        </div>
+      </section>
+      </section>
 
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="avatar-circle" id="user-avatar">U</div>
-                    <div class="user-text">
-                        <span class="user-name" id="user-name-display">Usuário</span>
-                        <span class="user-badge">Plano Gratuito</span>
-                    </div>
-                </div>
-                <button id="logout-btn" class="btn-logout" title="Sair da Conta">🚪</button>
-            </div>
-        </aside>
+      <!-- 7. HISTÓRICO DE CONVERSAS -->
+      <section id="screen-historico" class="dashboard-tab" style="display: none;">
+        <h2 style="color: var(--purple-dark); margin-bottom: 24px;">Histórico de Conversas</h2>
+        <div id="history-list-container">
+          <p style="color: var(--text-muted);">Carregando histórico do SQLite...</p>
+        </div>
+      </section>
 
-        <!-- ÁREA DE CONTEÚDO PRINCIPAL -->
-        <main class="content-area">
+      <!-- 8. PERFIL -->
+      <section id="screen-perfil" class="dashboard-tab" style="display: none;">
+        <h2 style="color: var(--purple-dark); margin-bottom: 24px;">Meu Perfil</h2>
+        <div style="background: var(--white); padding: 36px; border-radius: var(--radius-lg); max-width: 500px; box-shadow: var(--shadow-subtle);">
+          <p style="font-size: 1.1rem;"><strong>Nome:</strong> <span id="profile-name">-</span></p>
+          <p style="font-size: 1.1rem; margin-top: 16px;"><strong>E-mail:</strong> <span id="profile-email">-</span></p>
+        </div>
+      </section>
 
-            <!-- ABA 1: CHAT COM A OLÍVIA -->
-            <section id="tab-chat" class="tab-content active">
-                <header class="top-header">
-                    <div class="header-titles">
-                        <h2>Assistente Virtual Olívia</h2>
-                        <p>Espaço acolhedor para desabafar, tirar dúvidas e buscar orientação.</p>
-                    </div>
-                    <button id="new-chat-btn" class="btn-secondary">+ Nova Conversa</button>
-                </header>
+      <!-- 9. CONFIGURAÇÕES -->
+      <section id="screen-config" class="dashboard-tab" style="display: none;">
+        <h2 style="color: var(--purple-dark); margin-bottom: 24px;">Configurações</h2>
+        <div style="background: var(--white); padding: 36px; border-radius: var(--radius-lg); max-width: 500px; box-shadow: var(--shadow-subtle);">
+          <p style="color: var(--text-muted);">Configurações de acessibilidade e preferências de conta.</p>
+        </div>
+      </section>
+    </main>
+  </div>
 
-                <div class="chat-viewport" id="chat-messages">
-                    <div class="message-row bot">
-                        <div class="avatar">✨</div>
-                        <div class="message-bubble">
-                            Olá! Eu sou a Olívia. Estou aqui para te ouvir e ajudar no que precisar hoje. Como você está se sentindo?
-                        </div>
-                    </div>
-                </div>
-
-                <div id="typing-indicator" class="typing-indicator hidden">
-                    <span>✨ Olívia está pensando...</span>
-                </div>
-
-                <footer class="chat-input-wrapper">
-                    <form id="chat-form" class="chat-form">
-                        <input 
-                            type="text" 
-                            id="message-input" 
-                            placeholder="Digite sua mensagem para a Olívia..." 
-                            autocomplete="off" 
-                            required 
-                        />
-                        <button type="submit" class="btn-send">
-                            <span>Enviar</span>
-                            <span class="send-icon">➔</span>
-                        </button>
-                    </form>
-                </footer>
-            </section>
-
-            <!-- ABA 2: MINHAS TAREFAS -->
-            <section id="tab-tasks" class="tab-content hidden">
-                <header class="top-header">
-                    <div class="header-titles">
-                        <h2>Gestor de Hábitos e Tarefas</h2>
-                        <p>Organize suas metas diárias para manter o foco e a tranquilidade.</p>
-                    </div>
-                </header>
-
-                <div class="tasks-container">
-                    <div class="task-add-card">
-                        <input type="text" id="new-task-input" placeholder="Adicionar uma nova meta ou tarefa..." />
-                        <button id="add-task-btn" class="btn-primary">Adicionar</button>
-                    </div>
-
-                    <div class="tasks-list-wrapper">
-                        <h3>Suas Atividades</h3>
-                        <ul id="tasks-list" class="tasks-list">
-                            <!-- Tarefas carregadas via JavaScript -->
-                        </ul>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ABA 3: EXERCÍCIO DE RESPIRAÇÃO -->
-            <section id="tab-breathing" class="tab-content hidden">
-                <header class="top-header">
-                    <div class="header-titles">
-                        <h2>Guia de Respiração Consciente</h2>
-                        <p>Técnica 4-7-8 para aliviar a ansiedade e desacelerar a mente.</p>
-                    </div>
-                </header>
-
-                <div class="breathing-container">
-                    <div class="circle-wrapper">
-                        <div id="breathing-circle" class="breathing-circle">
-                            <span id="breathing-text">Clique para Iniciar</span>
-                        </div>
-                    </div>
-                    <div class="breathing-controls">
-                        <button id="start-breathing-btn" class="btn-primary btn-lg">Iniciar Exercício</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ABA 4: DIÁRIO DE HUMOR -->
-            <section id="tab-mood" class="tab-content hidden">
-                <header class="top-header">
-                    <div class="header-titles">
-                        <h2>Diário de Sentimentos</h2>
-                        <p>Registre como se sente hoje e acompanhe sua evolução.</p>
-                    </div>
-                </header>
-
-                <div class="mood-container">
-                    <div class="mood-card">
-                        <h3>Como você avalia o seu dia?</h3>
-                        <div class="mood-options">
-                            <button class="mood-btn" data-mood="Muito Bem">😄<br>Muito Bem</button>
-                            <button class="mood-btn" data-mood="Bem">🙂<br>Bem</button>
-                            <button class="mood-btn" data-mood="Neutro">😐<br>Neutro</button>
-                            <button class="mood-btn" data-mood="Ansioso(a)">Calmo(a)">😌<br>Calmo(a)</button>
-                            <button class="mood-btn" data-mood="Triste">😔<br>Triste</button>
-                        </div>
-                        <div id="mood-response" class="mood-response hidden">
-                            <p>Registro salvo com sucesso! A Olívia guardou seu sentimento de hoje.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-        </main>
+  <!-- 10. MODAL DE LOGOUT -->
+  <div id="logout-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-icon"><i class="fa-solid fa-check"></i></div>
+      <h3 style="color: var(--purple-dark); margin-bottom: 12px; font-size: 1.5rem;">Até logo!</h3>
+      <p style="color: var(--text-muted); margin-bottom: 28px; line-height: 1.5;">Sua jornada continua quando quiser voltar. <i class="fa-solid fa-heart" style="color: var(--purple-main);"></i></p>
+      <button class="btn-primary" onclick="confirmLogout()">Voltar para a Home</button>
     </div>
-    <!-- Biblioteca para formatação de Markdown em HTML -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="js/app.js"></script>
+  </div>
+
+  <!-- MODAL DE ATIVIDADE GUIADA (RESPIRAÇÃO / GRATIDÃO) -->
+  <div id="activity-modal" class="modal-overlay">
+    <div class="modal-box activity-modal-content">
+      <button class="modal-close-btn" onclick="closeActivityModal()"><i class="fa-solid fa-xmark"></i></button>
+      
+      <div id="activity-modal-body">
+        <!-- O conteúdo será injetado dinamicamente via JS -->
+      </div>
+    </div>
+  </div>
 </body>
 </html>

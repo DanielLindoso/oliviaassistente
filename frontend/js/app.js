@@ -1,448 +1,431 @@
+/* ==========================================================================
+   LÓGICA SPA, AUTENTICAÇÃO E CHAT - OLIVIA ASSISTENTE
+   ========================================================================== */
+
 const API_BASE_URL = "https://olivia-fskx.onrender.com";
 
-let currentUser = JSON.parse(localStorage.getItem("olivia_user")) || null;
-let currentConversationId = localStorage.getItem("olivia_conversation_id") || null;
-let tasks = JSON.parse(localStorage.getItem("olivia_tasks")) || [];
-
 document.addEventListener("DOMContentLoaded", () => {
-    initNavigation();
-    setupAuthListeners();
-    setupChatListeners();
-    setupTasksListeners();
-    setupBreathingListeners();
-    setupMoodListeners();
-    checkAuthStatus();
+  checkSession();
+
+  // Escuta tecla Enter no input do chat
+  document.getElementById("chat-input-field")?.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") handleSendMessage();
+  });
 });
 
-// 1. CONTROLADOR DE SESSÃO E TELAS (SPA)
-function checkAuthStatus() {
-    const authScreen = document.getElementById("auth-screen");
-    const mainApp = document.getElementById("main-app");
-    const userDisplay = document.getElementById("user-name-display");
-    const userAvatar = document.getElementById("user-avatar");
+// Alterna entre páginas externas da SPA (Home, Login, Cadastro)
+function navigateTo(screenId) {
+  document.querySelectorAll(".view-screen").forEach(el => {
+    el.classList.remove("active");
+    el.style.display = "none";
+  });
+  
+  document.getElementById("app-dashboard-wrapper").style.display = "none";
 
-    if (currentUser && currentUser.name) {
-        if (authScreen) authScreen.classList.add("hidden");
-        if (mainApp) mainApp.classList.remove("hidden");
-        if (userDisplay) userDisplay.textContent = currentUser.name;
-        if (userAvatar) userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
-        renderTasks();
+  const target = document.getElementById(screenId);
+  if (target) {
+    target.style.display = "flex";
+    setTimeout(() => target.classList.add("active"), 10);
+  }
+}
+
+// Alterna entre as abas da Sidebar interna
+function switchDashboardTab(tabId) {
+  document.querySelectorAll(".dashboard-tab").forEach(el => el.style.display = "none");
+  document.querySelectorAll(".sidebar-menu li").forEach(el => el.classList.remove("active"));
+
+  const targetTab = document.getElementById(tabId);
+  if (targetTab) targetTab.style.display = "block";
+
+  const menuMap = {
+    'screen-chat': 'menu-chat',
+    'screen-atividades': 'menu-atividades',
+    'screen-historico': 'menu-historico',
+    'screen-progresso': 'menu-progresso',
+    'screen-perfil': 'menu-perfil',
+    'screen-config': 'menu-config'
+  };
+
+  if (menuMap[tabId]) {
+    document.getElementById(menuMap[tabId])?.classList.add("active");
+  }
+
+  if (tabId === 'screen-historico') fetchHistory();
+}
+
+// Checa estado da sessão salva no localStorage
+function checkSession() {
+  const userId = localStorage.getItem("user_id");
+  const userName = localStorage.getItem("user_name");
+
+  if (userId) {
+    document.querySelectorAll(".view-screen").forEach(el => {
+      el.classList.remove("active");
+      el.style.display = "none";
+    });
+
+    const appWrapper = document.getElementById("app-dashboard-wrapper");
+    if (appWrapper) appWrapper.style.display = "flex";
+
+    document.getElementById("chat-user-greeting").innerText = `Olá, ${userName || ''}!`;
+    document.getElementById("profile-name").innerText = userName || 'Usuário';
+    document.getElementById("profile-email").innerText = localStorage.getItem("user_email") || '-';
+
+    switchDashboardTab("screen-chat");
+    fetchHistory();
+  } else {
+    navigateTo("screen-home");
+  }
+}
+
+// Login SPA
+async function handleLogin(e) {
+  if (e) e.preventDefault();
+
+  const alertBox = document.getElementById("login-alert");
+  if (alertBox) alertBox.style.display = "none";
+
+  const email = document.getElementById("login-email")?.value.trim();
+  const password = document.getElementById("login-password")?.value.trim();
+
+  if (!email || !password) return;
+
+  try {
+    let res = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!res.ok) {
+      res = await fetch(`${API_BASE_URL}/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+    }
+
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem("user_id", data.user_id);
+      localStorage.setItem("user_name", data.name || "Usuário");
+      localStorage.setItem("user_email", data.email || email);
+      checkSession();
     } else {
-        if (authScreen) authScreen.classList.remove("hidden");
-        if (mainApp) mainApp.classList.add("hidden");
+      if (alertBox) {
+        alertBox.innerText = data.detail || "E-mail ou senha incorretos.";
+        alertBox.style.display = "block";
+      }
     }
+  } catch (err) {
+    if (alertBox) {
+      alertBox.innerText = "Erro ao conectar com o servidor da Olívia.";
+      alertBox.style.display = "block";
+    }
+  }
 }
 
-function initNavigation() {
-    const navButtons = document.querySelectorAll(".nav-btn");
-    const tabContents = document.querySelectorAll(".tab-content");
+// Cadastro SPA
+async function handleCadastro(e) {
+  if (e) e.preventDefault();
 
-    navButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            const targetTab = btn.getAttribute("data-tab");
+  const alertBox = document.getElementById("cadastro-alert");
+  if (alertBox) alertBox.style.display = "none";
 
-            navButtons.forEach(b => b.classList.remove("active"));
-            tabContents.forEach(c => c.classList.add("hidden"));
+  const name = document.getElementById("reg-name")?.value.trim();
+  const email = document.getElementById("reg-email")?.value.trim();
+  const password = document.getElementById("reg-password")?.value.trim();
 
-            btn.classList.add("active");
-            const activeEl = document.getElementById(targetTab);
-            if (activeEl) activeEl.classList.remove("hidden");
-        });
+  try {
+    let res = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password })
     });
-}
 
-// Função auxiliar para exibir mensagens visuais de status sem alert()
-function showAuthMessage(message, type = "error") {
-    const alertBox = document.getElementById("auth-message");
-    if (!alertBox) return;
-
-    alertBox.textContent = message;
-    alertBox.className = `auth-alert ${type}`;
-    alertBox.classList.remove("hidden");
-}
-
-function hideAuthMessage() {
-    const alertBox = document.getElementById("auth-message");
-    if (alertBox) alertBox.classList.add("hidden");
-}
-
-// 2. AUTENTICAÇÃO COM COMPATIBILIDADE DE ROTAS E MENSAGENS VISUAIS
-function setupAuthListeners() {
-    const loginForm = document.getElementById("login-form");
-    const registerForm = document.getElementById("register-form");
-    const showRegister = document.getElementById("show-register");
-    const showLogin = document.getElementById("show-login");
-    const logoutBtn = document.getElementById("logout-btn");
-
-    if (showRegister) {
-        showRegister.addEventListener("click", (e) => {
-            e.preventDefault();
-            hideAuthMessage();
-            loginForm.classList.add("hidden");
-            registerForm.classList.remove("hidden");
-        });
+    if (!res.ok) {
+      res = await fetch(`${API_BASE_URL}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+      });
     }
 
-    if (showLogin) {
-        showLogin.addEventListener("click", (e) => {
-            e.preventDefault();
-            hideAuthMessage();
-            registerForm.classList.add("hidden");
-            loginForm.classList.remove("hidden");
-        });
-    }
+    const data = await res.json();
 
-    // REGISTRO DE CONTA
-    if (registerForm) {
-        registerForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            hideAuthMessage();
-
-            const name = document.getElementById("reg-name").value;
-            const email = document.getElementById("reg-email").value;
-            const password = document.getElementById("reg-password").value;
-
-            try {
-                // Tentativa na rota padrão /auth/register
-                let response = await fetch(`${API_BASE_URL}/auth/register`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name, email, password })
-                });
-
-                // Fallback automático para a rota /register caso o backend não use prefixo
-                if (response.status === 404) {
-                    response = await fetch(`${API_BASE_URL}/register`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ name, email, password })
-                    });
-                }
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showAuthMessage("Conta criada com sucesso! Redirecionando para login...", "success");
-                    setTimeout(() => {
-                        hideAuthMessage();
-                        registerForm.classList.add("hidden");
-                        loginForm.classList.remove("hidden");
-                    }, 2000);
-                } else {
-                    showAuthMessage(data.detail || "Não foi possível criar a conta.", "error");
-                }
-            } catch (err) {
-                showAuthMessage("Erro ao conectar ao servidor. O serviço pode estar inicializando.", "error");
-            }
-        });
-    }
-
-    // LOGIN
-    if (loginForm) {
-        loginForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            hideAuthMessage();
-
-            const email = document.getElementById("login-email").value;
-            const password = document.getElementById("login-password").value;
-
-            try {
-                let response = await fetch(`${API_BASE_URL}/auth/login`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ email, password })
-                });
-
-                if (response.status === 404) {
-                    response = await fetch(`${API_BASE_URL}/login`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email, password })
-                    });
-                }
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    currentUser = data;
-                    localStorage.setItem("olivia_user", JSON.stringify(data));
-                    checkAuthStatus();
-                } else {
-                    showAuthMessage(data.detail || "E-mail ou senha incorretos.", "error");
-                }
-            } catch (err) {
-                showAuthMessage("Servidor inacessível no momento. Tente novamente em instantes.", "error");
-            }
-        });
-    }
-
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", () => {
-            localStorage.removeItem("olivia_user");
-            localStorage.removeItem("olivia_conversation_id");
-            currentUser = null;
-            currentConversationId = null;
-            checkAuthStatus();
-        });
-    }
-}
-
-// 3. CHAT COM A OLÍVIA
-function setupChatListeners() {
-    const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message-input");
-    const newChatBtn = document.getElementById("new-chat-btn");
-    const typingIndicator = document.getElementById("typing-indicator");
-
-    if (newChatBtn) {
-        newChatBtn.addEventListener("click", () => {
-            localStorage.removeItem("olivia_conversation_id");
-            currentConversationId = null;
-            const chatBox = document.getElementById("chat-messages");
-            if (chatBox) {
-                chatBox.innerHTML = `
-                    <div class="message-row bot">
-                        <div class="avatar">✨</div>
-                        <div class="message-bubble">
-                            Nova conversa iniciada! Como posso ajudar você agora?
-                        </div>
-                    </div>
-                `;
-            }
-        });
-    }
-
-    if (chatForm) {
-        chatForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const messageText = messageInput.value.trim();
-            if (!messageText) return;
-
-            appendMessage("user", messageText);
-            messageInput.value = "";
-            if (typingIndicator) typingIndicator.classList.remove("hidden");
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/chat`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        message: messageText,
-                        user_id: currentUser ? currentUser.user_id : 1,
-                        conversation_id: currentConversationId
-                    })
-                });
-
-                const data = await response.json();
-                if (typingIndicator) typingIndicator.classList.add("hidden");
-
-                if (response.ok) {
-                    if (data.conversation_id) {
-                        currentConversationId = data.conversation_id;
-                        localStorage.setItem("olivia_conversation_id", data.conversation_id);
-                    }
-                    appendMessage("bot", data.response);
-                } else {
-                    appendMessage("bot", "Desculpe, tive uma instabilidade ao processar a resposta.");
-                }
-            } catch (err) {
-                if (typingIndicator) typingIndicator.classList.add("hidden");
-                appendMessage("bot", "Erro ao conectar com a Olívia na nuvem.");
-            }
-        });
-    }
-}
-
-function appendMessage(sender, text) {
-    const chatMessages = document.getElementById("chat-messages");
-    if (!chatMessages) return;
-
-    const rowDiv = document.createElement("div");
-    rowDiv.classList.add("message-row", sender);
-
-    const avatarDiv = document.createElement("div");
-    avatarDiv.classList.add("avatar");
-    avatarDiv.textContent = sender === "user" ? (currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : "U") : "✨";
-
-    const bubbleDiv = document.createElement("div");
-    bubbleDiv.classList.add("message-bubble");
-
-    if (typeof marked !== "undefined" && sender === "bot") {
-        bubbleDiv.innerHTML = marked.parse(text);
+    if (res.ok) {
+      alert("Cadastro concluído com sucesso! Faça login para acessar.");
+      navigateTo("screen-login");
     } else {
-        let formattedText = text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n\* /g, '<br>• ');
-        bubbleDiv.innerHTML = `<p>${formattedText}</p>`;
+      if (alertBox) {
+        alertBox.innerText = data.detail || "Erro no cadastro.";
+        alertBox.style.display = "block";
+      }
     }
-
-    rowDiv.appendChild(avatarDiv);
-    rowDiv.appendChild(bubbleDiv);
-
-    chatMessages.appendChild(rowDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+  } catch (err) {
+    if (alertBox) {
+      alertBox.innerText = "Erro de conexão com o servidor.";
+      alertBox.style.display = "block";
+    }
+  }
 }
 
-// 4. MÓDULO DE TAREFAS (CORRIGIDO)
-function setupTasksListeners() {
-    const addTaskBtn = document.getElementById("add-task-btn");
-    const taskInput = document.getElementById("new-task-input");
+// Envio de Mensagens no Chat
+async function handleSendMessage() {
+  const input = document.getElementById("chat-input-field");
+  const messageText = input.value.trim();
+  if (!messageText) return;
 
-    const handleAddTask = async () => {
-        const title = taskInput.value.trim();
-        if (!title) return;
+  const container = document.getElementById("chat-messages-container");
 
-        const newTask = { id: Date.now(), title, completed: false };
-        tasks.push(newTask);
-        localStorage.setItem("olivia_tasks", JSON.stringify(tasks));
-        taskInput.value = "";
-        renderTasks();
+  // Balão de mensagem do usuário
+  const userBubble = document.createElement("div");
+  userBubble.className = "message-bubble user";
+  userBubble.innerText = messageText;
+  container.appendChild(userBubble);
 
-        // Tenta sincronizar com o banco em segundo plano
-        try {
-            await fetch(`${API_BASE_URL}/api/tasks`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title, user_id: currentUser ? currentUser.user_id : 1 })
-            });
-        } catch (e) {
-            console.log("Sincronização offline das tarefas ativada.");
-        }
-    };
+  input.value = "";
+  container.scrollTop = container.scrollHeight;
 
-    if (addTaskBtn) {
-        addTaskBtn.addEventListener("click", handleAddTask);
-    }
+  const userId = localStorage.getItem("user_id");
 
-    if (taskInput) {
-        taskInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                handleAddTask();
-            }
-        });
-    }
-}
-
-function renderTasks() {
-    const tasksList = document.getElementById("tasks-list");
-    if (!tasksList) return;
-
-    tasksList.innerHTML = "";
-    if (tasks.length === 0) {
-        tasksList.innerHTML = `<li style="padding: 12px; color: #64748b;">Nenhuma meta cadastrada ainda. Adicione a primeira acima!</li>`;
-        return;
-    }
-
-    tasks.forEach(task => {
-        const li = document.createElement("li");
-        li.className = `task-item ${task.completed ? "completed" : ""}`;
-        li.innerHTML = `
-            <span>${task.title}</span>
-            <button class="btn-secondary" onclick="toggleTask(${task.id})">${task.completed ? "✔ Concluída" : "Concluir"}</button>
-        `;
-        tasksList.appendChild(li);
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: messageText,
+        user_id: userId ? parseInt(userId) : null
+      })
     });
+
+    const data = await res.json();
+
+    // Balão de resposta da Olívia
+    const oliviaBubble = document.createElement("div");
+    oliviaBubble.className = "message-bubble olivia";
+    oliviaBubble.innerText = data.response || data.reply || "Desculpe, tive uma instabilidade.";
+    container.appendChild(oliviaBubble);
+    container.scrollTop = container.scrollHeight;
+
+  } catch (err) {
+    const errorBubble = document.createElement("div");
+    errorBubble.className = "message-bubble olivia";
+    errorBubble.innerText = "Estou recebendo muitas mensagens. Pode tentar novamente em instantes?";
+    container.appendChild(errorBubble);
+  }
 }
 
-window.toggleTask = function(id) {
-    tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
-    localStorage.setItem("olivia_tasks", JSON.stringify(tasks));
-    renderTasks();
-};
+// Busca Histórico de Mensagens do SQLite
+async function fetchHistory() {
+  const userId = localStorage.getItem("user_id");
+  if (!userId) return;
 
-// 5. EXERCÍCIO DE RESPIRAÇÃO (CORRIGIDO)
-function setupBreathingListeners() {
-    const startBtn = document.getElementById("start-breathing-btn");
-    const circle = document.getElementById("breathing-circle");
-    const text = document.getElementById("breathing-text");
+  const listContainer = document.getElementById("history-list-container");
 
-    if (startBtn) {
-        startBtn.addEventListener("click", () => {
-            startBtn.disabled = true;
-            let cycles = 0;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/chat/history/${userId}`);
+    const data = await res.json();
 
-            function runCycle() {
-                if (!circle || !text) return;
-                
-                // Passagem 1: Inspire (4 seg)
-                text.textContent = "Inspire devagar...";
-                circle.classList.remove("exhale");
-                circle.classList.add("inhale");
-
-                setTimeout(() => {
-                    // Passagem 2: Segure (4 seg)
-                    text.textContent = "Segure o ar...";
-
-                    setTimeout(() => {
-                        // Passagem 3: Expire (4 seg)
-                        text.textContent = "Expire suavemente...";
-                        circle.classList.remove("inhale");
-                        circle.classList.add("exhale");
-
-                        setTimeout(() => {
-                            cycles++;
-                            if (cycles < 3) {
-                                runCycle();
-                            } else {
-                                text.textContent = "Excelente! Como se sente?";
-                                circle.classList.remove("exhale");
-                                startBtn.disabled = false;
-                            }
-                        }, 4000);
-                    }, 4000);
-                }, 4000);
-            }
-
-            runCycle();
-        });
+    if (res.ok && data.messages && data.messages.length > 0) {
+      listContainer.innerHTML = "";
+      data.messages.forEach(msg => {
+        const item = document.createElement("div");
+        item.style.cssText = "background: var(--white); padding: 20px; border-radius: var(--radius-md); margin-bottom: 14px; box-shadow: var(--shadow-subtle); border: 1px solid #F0EBFA;";
+        item.innerHTML = `<strong style="color: var(--purple-dark);">${msg.role === 'user' ? 'Você' : 'Olivia'}:</strong> <p style="margin-top: 6px; color: var(--text-muted); font-size: 0.95rem;">${msg.content}</p>`;
+        listContainer.appendChild(item);
+      });
+    } else {
+      listContainer.innerHTML = "<p style='color: var(--text-muted);'>Nenhuma conversa registrada ainda.</p>";
     }
+  } catch (err) {
+    listContainer.innerHTML = "<p style='color: var(--danger);'>Erro ao carregar histórico de conversas.</p>";
+  }
 }
 
-// 6. DIÁRIO DE HUMOR (CORRIGIDO COM REDIRECIONAMENTO E FEEDBACK)
-function setupMoodListeners() {
-    const moodBtns = document.querySelectorAll(".mood-btn");
-    const moodResponse = document.getElementById("mood-response");
+// Modal de Logout
+function showLogoutModal() {
+  document.getElementById("logout-modal").classList.add("active");
+}
 
-    moodBtns.forEach(btn => {
-        btn.addEventListener("click", async () => {
-            const mood = btn.getAttribute("data-mood");
-            
-            if (moodResponse) {
-                moodResponse.classList.remove("hidden");
-                moodResponse.innerHTML = `
-                    <p style="margin-bottom: 12px;">Você registrou que está se sentindo <strong>${mood}</strong> hoje.</p>
-                    <button id="chat-about-mood" class="btn-primary" style="margin-top: 8px;">Conversar com a Olívia sobre isso</button>
-                `;
+function confirmLogout() {
+  localStorage.clear();
+  document.getElementById("logout-modal").classList.remove("active");
+  navigateTo("screen-home");
+}
 
-                const chatMoodBtn = document.getElementById("chat-about-mood");
-                if (chatMoodBtn) {
-                    chatMoodBtn.addEventListener("click", () => {
-                        // Muda para a aba de chat e envia mensagem automática
-                        const chatTabBtn = document.querySelector('[data-tab="tab-chat"]');
-                        if (chatTabBtn) chatTabBtn.click();
-                        
-                        const msgInput = document.getElementById("message-input");
-                        if (msgInput) {
-                            msgInput.value = `Hoje estou me sentindo ${mood.toLowerCase()}. O que podemos fazer?`;
-                        }
-                    });
-                }
-            }
+/* ==========================================================================
+   ATIVIDADES INTERATIVAS (SEM JANELAS DE ALERT)
+   ========================================================================== */
 
-            // Grava no banco
-            try {
-                await fetch(`${API_BASE_URL}/api/mood`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ mood, user_id: currentUser ? currentUser.user_id : 1 })
-                });
-            } catch (err) {
-                console.log("Humor salvo localmente.");
-            }
-        });
-    });
+let breathingTimer = null;
+
+// 1. Exercício Guiado de Respiração Animado
+function startBreathingExercise() {
+  const modal = document.getElementById("activity-modal");
+  const body = document.getElementById("activity-modal-body");
+
+  body.innerHTML = `
+    <div class="logo-icon" style="margin: 0 auto 16px auto;"><i class="fa-solid fa-wind"></i></div>
+    <h3 style="color: var(--purple-dark); font-size: 1.5rem;">Respiração Guiada</h3>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Siga o ritmo do círculo para acalmar a mente</p>
+
+    <div class="breathing-circle-wrapper">
+      <div id="b-circle" class="breathing-circle">Prepare-se</div>
+    </div>
+
+    <p id="b-instruction" style="font-weight: 600; color: var(--purple-main); font-size: 1.1rem; min-height: 30px;">
+      Relaxe os ombros...
+    </p>
+  `;
+
+  modal.classList.add("active");
+
+  const circle = document.getElementById("b-circle");
+  const instruction = document.getElementById("b-instruction");
+
+  let phase = 0;
+
+  function cycle() {
+    if (!modal.classList.contains("active")) return;
+
+    if (phase === 0) {
+      // Inspire (4s)
+      circle.className = "breathing-circle expand";
+      circle.innerText = "Inspire";
+      instruction.innerText = "Inspire lentamente pelo nariz... (4s)";
+      phase = 1;
+      breathingTimer = setTimeout(cycle, 4000);
+    } else if (phase === 1) {
+      // Segure (4s)
+      circle.className = "breathing-circle hold";
+      circle.innerText = "Segure";
+      instruction.innerText = "Mantenha o ar nos pulmões... (4s)";
+      phase = 2;
+      breathingTimer = setTimeout(cycle, 4000);
+    } else {
+      // Expire (6s)
+      circle.className = "breathing-circle shrink";
+      circle.innerText = "Expire";
+      instruction.innerText = "Solte o ar bem devagar pela boca... (6s)";
+      phase = 0;
+      breathingTimer = setTimeout(cycle, 6000);
+    }
+  }
+
+  // Inicia após 1.5s
+  breathingTimer = setTimeout(cycle, 1500);
+}
+
+// 2. Diário da Gratidão Interativo
+function startGratitudeExercise() {
+  const modal = document.getElementById("activity-modal");
+  const body = document.getElementById("activity-modal-body");
+
+  body.innerHTML = `
+    <div class="logo-icon" style="margin: 0 auto 16px auto;"><i class="fa-solid fa-heart"></i></div>
+    <h3 style="color: var(--purple-dark); font-size: 1.4rem;">Diário da Gratidão</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 6px; margin-bottom: 20px;">Escreva 3 coisas boas do seu dia pelas quais é grato:</p>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+      <input type="text" class="input-field" placeholder="1. Sou grato(a) por..." id="g-input-1">
+      <input type="text" class="input-field" placeholder="2. Sou grato(a) por..." id="g-input-2">
+      <input type="text" class="input-field" placeholder="3. Sou grato(a) por..." id="g-input-3">
+    </div>
+
+    <button class="btn-primary" style="width: 100%; margin-top: 24px;" onclick="saveGratitude()">Concluir e Salvar</button>
+  `;
+
+  modal.classList.add("active");
+}
+
+function saveGratitude() {
+  const i1 = document.getElementById("g-input-1")?.value.trim();
+  const i2 = document.getElementById("g-input-2")?.value.trim();
+  const i3 = document.getElementById("g-input-3")?.value.trim();
+
+  if (!i1 && !i2 && !i3) {
+    alert("Escreva pelo menos 1 motivo de gratidão antes de registrar.");
+    return;
+  }
+
+  incrementActivityCount();
+
+  const body = document.getElementById("activity-modal-body");
+  body.innerHTML = `
+    <div class="modal-icon"><i class="fa-solid fa-check"></i></div>
+    <h3 style="color: var(--purple-dark); font-size: 1.4rem;">Registro Concluído!</h3>
+    <p style="color: var(--text-muted); margin: 12px 0 24px 0;">Parabéns por tirar esse tempo para você hoje! <i class="fa-solid fa-heart" style="color: var(--purple-main);"></i></p>
+    <button class="btn-primary" onclick="closeActivityModal()">Fechar</button>
+  `;
+}
+// Fechar Modal de Atividades
+function closeActivityModal() {
+  const modal = document.getElementById("activity-modal");
+  modal.classList.remove("active");
+  if (breathingTimer) clearTimeout(breathingTimer);
+  incrementActivityCount();
+}
+
+// Função para atualizar os dados do Dashboard de Progresso
+async function updateProgressDashboard() {
+  const userId = localStorage.getItem("user_id");
+  
+  // 1. Contador de Atividades (salvo localmente)
+  const activitiesCompleted = localStorage.getItem(`activities_completed_${userId}`) || "0";
+  const activitiesElem = document.getElementById("stat-atividades-count");
+  if (activitiesElem) activitiesElem.innerText = activitiesCompleted;
+
+  // 2. Contador de Mensagens no Chat (buscado do SQLite)
+  if (userId) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/chat/history/${userId}`);
+      const data = await res.json();
+      const countElem = document.getElementById("stat-conversas-count");
+      
+      if (res.ok && data.messages && countElem) {
+        countElem.innerText = data.messages.length;
+      }
+    } catch (err) {
+      console.error("Erro ao atualizar estatísticas de conversas:", err);
+    }
+  }
+}
+
+// Atualizar a troca de abas para recarregar o progresso quando clicar na aba "Progresso"
+function switchDashboardTab(tabId) {
+  document.querySelectorAll(".dashboard-tab").forEach(el => el.style.display = "none");
+  document.querySelectorAll(".sidebar-menu li").forEach(el => el.classList.remove("active"));
+
+  const targetTab = document.getElementById(tabId);
+  if (targetTab) targetTab.style.display = "block";
+
+  const menuMap = {
+    'screen-chat': 'menu-chat',
+    'screen-atividades': 'menu-atividades',
+    'screen-historico': 'menu-historico',
+    'screen-progresso': 'menu-progresso',
+    'screen-perfil': 'menu-perfil',
+    'screen-config': 'menu-config'
+  };
+
+  if (menuMap[tabId]) {
+    document.getElementById(menuMap[tabId])?.classList.add("active");
+  }
+
+  if (tabId === 'screen-historico') fetchHistory();
+  if (tabId === 'screen-progresso') updateProgressDashboard();
+}
+
+// Incrementar contador de atividades quando o usuário conclui o exercício de respiração ou gratidão
+function incrementActivityCount() {
+  const userId = localStorage.getItem("user_id");
+  if (!userId) return;
+  
+  let current = parseInt(localStorage.getItem(`activities_completed_${userId}`) || "0");
+  current += 1;
+  localStorage.setItem(`activities_completed_${userId}`, current.toString());
+  
+  updateProgressDashboard();
 }
