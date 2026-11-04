@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Olivia Assistente - Apoio Emocional</title>
 
-  <!-- Fontes & Ícones Atualizados -->
+  <!-- Fontes & Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="./css/style.css">
   <script src="./js/app.js" defer></script>
@@ -130,14 +130,19 @@
     </div>
   </div>
 
-  <!-- CONTAINER DASHBOARD COM SIDEBAR INTERATIVA -->
+  <!-- PAINEL DASHBOARD COM SIDEBAR -->
   <div id="app-dashboard-wrapper" class="app-layout" style="display: none;">
     <aside class="sidebar">
       <div class="sidebar-brand">
         <div class="logo-icon"><i class="fa-solid fa-spa"></i></div>
         <span>Olivia</span>
       </div>
-      
+
+      <!-- BOTÃO NOVA CONVERSA NA SIDEBAR -->
+      <button class="btn-primary" onclick="startNewConversation()" style="width: 100%; margin-bottom: 24px; padding: 12px 16px; font-size: 0.9rem;">
+        <i class="fa-solid fa-plus"></i> Nova Conversa
+      </button>
+
       <ul class="sidebar-menu">
         <li id="menu-chat" class="active" onclick="switchDashboardTab('screen-chat')"><a><i class="fa-solid fa-comment"></i> Chat</a></li>
         <li id="menu-atividades" onclick="switchDashboardTab('screen-atividades')"><a><i class="fa-solid fa-list-check"></i> Atividades</a></li>
@@ -158,12 +163,17 @@
       <!-- 4. CHAT COM OLIVIA -->
       <section id="screen-chat" class="dashboard-tab">
         <div class="chat-container">
-          <div class="chat-header">
-            <div class="logo-icon"><i class="fa-solid fa-robot"></i></div>
-            <div>
-              <h3 style="color: var(--purple-dark);" id="chat-user-greeting">Olá!</h3>
-              <p style="color: var(--text-muted); font-size: 0.88rem;">Como você está se sentindo hoje?</p>
+          <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 18px;">
+              <div class="logo-icon"><i class="fa-solid fa-robot"></i></div>
+              <div>
+                <h3 style="color: var(--purple-dark);" id="chat-user-greeting">Olá!</h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem;">Como você está se sentindo hoje?</p>
+              </div>
             </div>
+            <button class="btn-secondary" onclick="startNewConversation()" style="padding: 10px 18px; font-size: 0.85rem;">
+              <i class="fa-solid fa-plus"></i> Nova Conversa
+            </button>
           </div>
           
           <div class="chat-messages" id="chat-messages-container">
@@ -192,8 +202,7 @@
               <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">5 min • Reduz a ansiedade</p>
             </div>
           </div>
-          <!-- Exercício de Respiração -->
-        <button class="btn-primary" onclick="startBreathingExercise()">Iniciar</button>
+          <button class="btn-primary" onclick="startBreathingExercise()">Iniciar</button>
         </div>
 
         <div class="activity-card">
@@ -204,8 +213,7 @@
               <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Escreva 3 coisas boas do seu dia</p>
             </div>
           </div>
-          <!-- Diário da Gratidão -->
-        <button class="btn-primary" onclick="startGratitudeExercise()">Iniciar</button>
+          <button class="btn-primary" onclick="startGratitudeExercise()">Iniciar</button>
         </div>
       </section>
 
@@ -230,7 +238,7 @@
       <section id="screen-historico" class="dashboard-tab" style="display: none;">
         <h2 style="color: var(--purple-dark); margin-bottom: 24px;">Histórico de Conversas</h2>
         <div id="history-list-container">
-          <p style="color: var(--text-muted);">Carregando histórico do SQLite...</p>
+          <p style="color: var(--text-muted);">Carregando histórico...</p>
         </div>
       </section>
 
@@ -253,6 +261,14 @@
     </main>
   </div>
 
+  <!-- MODAL DE ATIVIDADES -->
+  <div id="activity-modal" class="modal-overlay">
+    <div class="modal-box activity-modal-content">
+      <button class="modal-close-btn" onclick="closeActivityModal()"><i class="fa-solid fa-xmark"></i></button>
+      <div id="activity-modal-body"></div>
+    </div>
+  </div>
+
   <!-- 10. MODAL DE LOGOUT -->
   <div id="logout-modal" class="modal-overlay">
     <div class="modal-box">
@@ -263,15 +279,5 @@
     </div>
   </div>
 
-  <!-- MODAL DE ATIVIDADE GUIADA (RESPIRAÇÃO / GRATIDÃO) -->
-  <div id="activity-modal" class="modal-overlay">
-    <div class="modal-box activity-modal-content">
-      <button class="modal-close-btn" onclick="closeActivityModal()"><i class="fa-solid fa-xmark"></i></button>
-      
-      <div id="activity-modal-body">
-        <!-- O conteúdo será injetado dinamicamente via JS -->
-      </div>
-    </div>
-  </div>
 </body>
 </html>
