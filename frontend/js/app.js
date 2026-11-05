@@ -1,5 +1,5 @@
 /* ==========================================================================
-   LÓGICA SPA, AUTENTICAÇÃO, CHAT E HISTÓRICO - OLIVIA ASSISTENTE
+   LÓGICA SPA, AUTENTICAÇÃO, CHAT, HISTÓRICO E ATIVIDADES - OLIVIA ASSISTENTE
    ========================================================================== */
 
 const API_BASE_URL = "https://olivia-fskx.onrender.com";
@@ -7,13 +7,13 @@ const API_BASE_URL = "https://olivia-fskx.onrender.com";
 document.addEventListener("DOMContentLoaded", () => {
   checkSession();
 
-  // Escuta a tecla Enter no campo de input do chat
+  // Escuta a tecla Enter no campo de entrada do chat
   document.getElementById("chat-input-field")?.addEventListener("keypress", (e) => {
     if (e.key === "Enter") handleSendMessage();
   });
 });
 
-// Alterna entre as telas da SPA (Home, Login, Cadastro)
+// 1. NAVEGAÇÃO SPA & ESTRUTURA
 function navigateTo(screenId) {
   document.querySelectorAll(".view-screen").forEach(el => {
     el.classList.remove("active");
@@ -30,22 +30,6 @@ function navigateTo(screenId) {
   }
 }
 
-// Iniciar uma Nova Conversa
-function startNewConversation() {
-  const container = document.getElementById("chat-messages-container");
-  if (container) {
-    container.innerHTML = `
-      <div class="message-bubble olivia">
-        Olá! Nova conversa iniciada. Como posso te apoiar agora?
-      </div>
-    `;
-  }
-  
-  switchDashboardTab("screen-chat");
-  document.getElementById("chat-input-field")?.focus();
-}
-
-// Alterna entre as abas internas da Sidebar (Chat, Atividades, Histórico, Progresso, Perfil, Configurações)
 function switchDashboardTab(tabId) {
   document.querySelectorAll(".dashboard-tab").forEach(el => el.style.display = "none");
   document.querySelectorAll(".sidebar-menu li").forEach(el => el.classList.remove("active"));
@@ -70,7 +54,6 @@ function switchDashboardTab(tabId) {
   if (tabId === 'screen-progresso') updateProgressDashboard();
 }
 
-// Verifica estado da sessão ativa no localStorage
 function checkSession() {
   const userId = localStorage.getItem("user_id");
   const userName = localStorage.getItem("user_name");
@@ -101,7 +84,7 @@ function checkSession() {
   }
 }
 
-// Handler do Login
+// 2. AUTENTICAÇÃO (LOGIN E CADASTRO)
 async function handleLogin(e) {
   if (e) e.preventDefault();
 
@@ -149,7 +132,6 @@ async function handleLogin(e) {
   }
 }
 
-// Handler do Cadastro com feedback interno
 async function handleCadastro(e) {
   if (e) e.preventDefault();
 
@@ -208,7 +190,21 @@ async function handleCadastro(e) {
   }
 }
 
-// Envio de mensagem com salvamento local no Histórico
+// 3. CHAT E COMUNICAÇÃO COM O BACKEND
+function startNewConversation() {
+  const container = document.getElementById("chat-messages-container");
+  if (container) {
+    container.innerHTML = `
+      <div class="message-bubble olivia">
+        Olá! Nova conversa iniciada. Como posso te apoiar agora?
+      </div>
+    `;
+  }
+  
+  switchDashboardTab("screen-chat");
+  document.getElementById("chat-input-field")?.focus();
+}
+
 async function handleSendMessage() {
   const input = document.getElementById("chat-input-field");
   const messageText = input.value.trim();
@@ -216,7 +212,6 @@ async function handleSendMessage() {
 
   const container = document.getElementById("chat-messages-container");
 
-  // Adiciona a bolha do usuário
   const userBubble = document.createElement("div");
   userBubble.className = "message-bubble user";
   userBubble.innerText = messageText;
@@ -228,7 +223,6 @@ async function handleSendMessage() {
   const rawUserId = localStorage.getItem("user_id");
   const userId = rawUserId ? parseInt(rawUserId, 10) : null;
 
-  // Salva a mensagem no histórico local instantaneamente
   saveMessageToLocalHistory(rawUserId, 'user', messageText);
 
   try {
@@ -242,29 +236,26 @@ async function handleSendMessage() {
     });
 
     const data = await res.json();
-    const botResponse = data.response || data.reply || "Desculpe, tive uma instabilidade.";
+    const botResponse = data.response || data.reply || "Estou aqui acompanhando você. Como se sente agora?";
 
-    // Adiciona a bolha da Olívia
     const oliviaBubble = document.createElement("div");
     oliviaBubble.className = "message-bubble olivia";
     oliviaBubble.innerText = botResponse;
     container.appendChild(oliviaBubble);
     container.scrollTop = container.scrollHeight;
 
-    // Salva a resposta da Olívia no histórico local
     saveMessageToLocalHistory(rawUserId, 'assistant', botResponse);
-
     updateProgressDashboard();
 
   } catch (err) {
+    console.error("Erro no chat:", err);
     const errorBubble = document.createElement("div");
     errorBubble.className = "message-bubble olivia";
-    errorBubble.innerText = "Estou recebendo muitas mensagens. Pode tentar novamente em instantes?";
+    errorBubble.innerText = "Tive uma pequena oscilação na conexão com meu servidor, mas já estou aqui de volta! Pode repetir?";
     container.appendChild(errorBubble);
   }
 }
 
-// Função auxiliar para armazenar o histórico localmente
 function saveMessageToLocalHistory(userId, role, content) {
   const key = `chat_history_${userId || 'guest'}`;
   let history = [];
@@ -277,7 +268,7 @@ function saveMessageToLocalHistory(userId, role, content) {
   localStorage.setItem(key, JSON.stringify(history));
 }
 
-// Busca e exibe o histórico de conversas (Backend + LocalStorage Fallback)
+// 4. HISTÓRICO E PROGRESSO
 async function fetchHistory() {
   const rawUserId = localStorage.getItem("user_id");
   const listContainer = document.getElementById("history-list-container");
@@ -287,14 +278,12 @@ async function fetchHistory() {
 
   let messages = [];
 
-  // 1. Tenta buscar o histórico real do SQLite via API
   if (rawUserId) {
     const userId = parseInt(rawUserId, 10);
     try {
       const res = await fetch(`${API_BASE_URL}/api/chat/history/${userId}`);
       if (res.ok) {
         const data = await res.json();
-        // O backend FastAPI retorna a chave "history" ou "messages"
         messages = data.history || data.messages || [];
       }
     } catch (err) {
@@ -302,7 +291,6 @@ async function fetchHistory() {
     }
   }
 
-  // 2. Se a API não retornar mensagens, carrega as conversas salvas no LocalStorage local
   if (messages.length === 0) {
     const localHistory = localStorage.getItem(`chat_history_${rawUserId || 'guest'}`);
     if (localHistory) {
@@ -314,10 +302,9 @@ async function fetchHistory() {
     }
   }
 
-  // 3. Renderização das mensagens no painel
   if (messages.length > 0) {
     listContainer.innerHTML = "";
-    messages.forEach((item, index) => {
+    messages.forEach((item) => {
       const div = document.createElement("div");
       div.style.cssText = "background: var(--white); padding: 20px; border-radius: var(--radius-md); margin-bottom: 14px; box-shadow: var(--shadow-subtle); border: 1px solid #F0EBFA; transition: var(--transition-fast); cursor: pointer;";
 
@@ -335,7 +322,6 @@ async function fetchHistory() {
         <p style="color: var(--text-muted); font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${content}</p>
       `;
 
-      // Permite reabrir a conversa no chat ao clicar no item
       div.addEventListener("click", () => {
         const container = document.getElementById("chat-messages-container");
         if (container) {
@@ -353,7 +339,6 @@ async function fetchHistory() {
   }
 }
 
-// Atualiza o painel de progresso
 async function updateProgressDashboard() {
   const rawUserId = localStorage.getItem("user_id");
   if (!rawUserId) return;
@@ -364,12 +349,9 @@ async function updateProgressDashboard() {
   if (activitiesElem) activitiesElem.innerText = activitiesCompleted;
 
   try {
-    let res = await fetch(`${API_BASE_URL}/conversations?user_id=${userId}`);
-    if (!res.ok) {
-      res = await fetch(`${API_BASE_URL}/api/chat/history/${userId}`);
-    }
+    const res = await fetch(`${API_BASE_URL}/api/chat/history/${userId}`);
     const data = await res.json();
-    const historyItems = data.messages || data.conversations || (Array.isArray(data) ? data : []);
+    const historyItems = data.history || data.messages || [];
     const countElem = document.getElementById("stat-conversas-count");
 
     if (res.ok && countElem) {
@@ -380,7 +362,6 @@ async function updateProgressDashboard() {
   }
 }
 
-// Incrementar atividades concluídas
 function incrementActivityCount() {
   const rawUserId = localStorage.getItem("user_id");
   if (!rawUserId) return;
@@ -392,7 +373,7 @@ function incrementActivityCount() {
   updateProgressDashboard();
 }
 
-// Modais de Atividade Guiada (Sem Janelas Nativas)
+// 5. ATIVIDADES GUIADAS (MODAIS)
 let breathingTimer = null;
 
 function startBreathingExercise() {
@@ -413,6 +394,8 @@ function startBreathingExercise() {
     <p id="b-instruction" style="font-weight: 600; color: var(--purple-main); font-size: 1.1rem; min-height: 30px;">
       Relaxe os ombros...
     </p>
+
+    <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="finishBreathingExercise()">Concluir Exercício</button>
   `;
 
   modal.classList.add("active");
@@ -447,6 +430,20 @@ function startBreathingExercise() {
   }
 
   breathingTimer = setTimeout(cycle, 1500);
+}
+
+function finishBreathingExercise() {
+  incrementActivityCount();
+  
+  const body = document.getElementById("activity-modal-body");
+  if (body) {
+    body.innerHTML = `
+      <div class="modal-icon"><i class="fa-solid fa-check"></i></div>
+      <h3 style="color: var(--purple-dark); font-size: 1.4rem;">Excelente!</h3>
+      <p style="color: var(--text-muted); margin: 12px 0 24px 0;">Você concluiu seu exercício de respiração! <i class="fa-solid fa-heart" style="color: var(--purple-main);"></i></p>
+      <button class="btn-primary" onclick="closeActivityModal()">Fechar</button>
+    `;
+  }
 }
 
 function startGratitudeExercise() {
@@ -498,7 +495,7 @@ function closeActivityModal() {
   if (breathingTimer) clearTimeout(breathingTimer);
 }
 
-// Modal de Logout
+// 6. MODAL DE LOGOUT
 function showLogoutModal() {
   const modal = document.getElementById("logout-modal");
   if (modal) modal.classList.add("active");
