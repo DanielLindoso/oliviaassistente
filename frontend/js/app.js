@@ -136,6 +136,8 @@ async function handleCadastro(e) {
   if (e) e.preventDefault();
 
   const alertBox = document.getElementById("cadastro-alert");
+  const submitBtn = document.querySelector("#cadastro-form button[type='submit']");
+
   if (alertBox) {
     alertBox.style.display = "none";
     alertBox.className = "alert-box alert-danger";
@@ -147,20 +149,19 @@ async function handleCadastro(e) {
 
   if (!name || !email || !password) return;
 
+  // Feedback visual de carregamento para o usuário
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerText = "Conectando com a Olívia...";
+  }
+
   try {
-    let res = await fetch(`${API_BASE_URL}/auth/register`, {
+    // Chamada direta para o endpoint oficial de autenticação
+    const res = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password })
     });
-
-    if (!res.ok) {
-      res = await fetch(`${API_BASE_URL}/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password })
-      });
-    }
 
     const data = await res.json();
 
@@ -177,15 +178,18 @@ async function handleCadastro(e) {
     } else {
       if (alertBox) {
         alertBox.innerText = data.detail || "Erro ao realizar o cadastro.";
-        alertBox.className = "alert-box alert-danger";
         alertBox.style.display = "block";
       }
     }
   } catch (err) {
     if (alertBox) {
-      alertBox.innerText = "Erro de conexão com o servidor.";
-      alertBox.className = "alert-box alert-danger";
+      alertBox.innerText = "O servidor está inicializando. Por favor, aguarde alguns segundos e tente novamente.";
       alertBox.style.display = "block";
+    }
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "Cadastrar";
     }
   }
 }
@@ -212,6 +216,7 @@ async function handleSendMessage() {
 
   const container = document.getElementById("chat-messages-container");
 
+  // Balão de mensagem do utilizador
   const userBubble = document.createElement("div");
   userBubble.className = "message-bubble user";
   userBubble.innerText = messageText;
@@ -224,6 +229,19 @@ async function handleSendMessage() {
   const userId = rawUserId ? parseInt(rawUserId, 10) : null;
 
   saveMessageToLocalHistory(rawUserId, 'user', messageText);
+
+  // Indicador VIVO de "Pensando..." com o avatar
+  const thinkingRow = document.createElement("div");
+  thinkingRow.id = "olivia-thinking-row";
+  thinkingRow.className = "olivia-message-container";
+  thinkingRow.innerHTML = `
+    <img src="./images/olivia-avatar.png" class="olivia-chat-avatar chat-avatar-live" alt="Olivia">
+    <div class="olivia-thinking-indicator">
+      <span></span><span></span><span></span>
+    </div>
+  `;
+  container.appendChild(thinkingRow);
+  container.scrollTop = container.scrollHeight;
 
   try {
     const res = await fetch(`${API_BASE_URL}/api/chat`, {
@@ -238,34 +256,50 @@ async function handleSendMessage() {
     const data = await res.json();
     const botResponse = data.response || data.reply || "Estou aqui acompanhando você. Como se sente agora?";
 
+    // Remove o indicador de "pensando"
+    document.getElementById("olivia-thinking-row")?.remove();
+
+    // Cria a linha da mensagem da Olívia com o novo avatar 3D
+    const messageRow = document.createElement("div");
+    messageRow.className = "olivia-message-container";
+
+    const avatar = document.createElement("img");
+    avatar.className = "olivia-chat-avatar chat-avatar-live";
+    avatar.src = "./images/olivia-avatar.png";
+    avatar.alt = "Olivia";
+
     const oliviaBubble = document.createElement("div");
     oliviaBubble.className = "message-bubble olivia";
     oliviaBubble.innerText = botResponse;
-    container.appendChild(oliviaBubble);
+
+    messageRow.appendChild(avatar);
+    messageRow.appendChild(oliviaBubble);
+    container.appendChild(messageRow);
     container.scrollTop = container.scrollHeight;
 
     saveMessageToLocalHistory(rawUserId, 'assistant', botResponse);
     updateProgressDashboard();
 
   } catch (err) {
+    document.getElementById("olivia-thinking-row")?.remove();
     console.error("Erro no chat:", err);
+    
+    const messageRow = document.createElement("div");
+    messageRow.className = "olivia-message-container";
+
+    const avatar = document.createElement("img");
+    avatar.className = "olivia-chat-avatar chat-avatar-live";
+    avatar.src = "./images/olivia-avatar.png";
+
     const errorBubble = document.createElement("div");
     errorBubble.className = "message-bubble olivia";
     errorBubble.innerText = "Tive uma pequena oscilação na conexão com meu servidor, mas já estou aqui de volta! Pode repetir?";
-    container.appendChild(errorBubble);
-  }
-}
 
-function saveMessageToLocalHistory(userId, role, content) {
-  const key = `chat_history_${userId || 'guest'}`;
-  let history = [];
-  try {
-    history = JSON.parse(localStorage.getItem(key)) || [];
-  } catch (e) {
-    history = [];
+    messageRow.appendChild(avatar);
+    messageRow.appendChild(errorBubble);
+    container.appendChild(messageRow);
+    container.scrollTop = container.scrollHeight;
   }
-  history.push({ role, content, created_at: new Date().toISOString() });
-  localStorage.setItem(key, JSON.stringify(history));
 }
 
 // 4. HISTÓRICO E PROGRESSO
