@@ -34,7 +34,7 @@
           </button>
         </div>
       <div class="avatar-animated-wrapper">
-          <img src="./images/olivia-avatar.png" class="avatar-animated-img" alt="Olívia - Assistente Virtual">
+          <img src="./images/olivia-avatar.jpg" class="avatar-animated-img" alt="Olívia - Assistente Virtual">
         </div>
       </main>
 
@@ -142,13 +142,37 @@
       </button>
 
       <ul class="sidebar-menu">
-        <li id="menu-chat" class="active" onclick="switchDashboardTab('screen-chat')"><a><i class="fa-solid fa-comment"></i> Chat</a></li>
-        <li id="menu-atividades" onclick="switchDashboardTab('screen-atividades')"><a><i class="fa-solid fa-list-check"></i> Atividades</a></li>
-        <li id="menu-historico" onclick="switchDashboardTab('screen-historico')"><a><i class="fa-solid fa-clock-rotate-left"></i> Histórico</a></li>
-        <li id="menu-progresso" onclick="switchDashboardTab('screen-progresso')"><a><i class="fa-solid fa-chart-pie"></i> Progresso</a></li>
-        <li id="menu-perfil" onclick="switchDashboardTab('screen-perfil')"><a><i class="fa-solid fa-user"></i> Perfil</a></li>
-        <li id="menu-config" onclick="switchDashboardTab('screen-config')"><a><i class="fa-solid fa-gear"></i> Configurações</a></li>
-      </ul>
+  <li id="menu-chat" class="active">
+    <a href="#" onclick="switchDashboardTab('screen-chat'); return false;">
+      <i class="fa-solid fa-comment"></i> Chat
+    </a>
+  </li>
+  <li id="menu-atividades">
+    <a href="#" onclick="switchDashboardTab('screen-atividades'); return false;">
+      <i class="fa-solid fa-list-check"></i> Atividades
+    </a>
+  </li>
+  <li id="menu-historico">
+    <a href="#" onclick="switchDashboardTab('screen-historico'); return false;">
+      <i class="fa-solid fa-clock-rotate-left"></i> Histórico
+    </a>
+  </li>
+  <li id="menu-progresso">
+    <a href="#" onclick="switchDashboardTab('screen-progresso'); return false;">
+      <i class="fa-solid fa-chart-pie"></i> Progresso
+    </a>
+  </li>
+  <li id="menu-perfil">
+    <a href="#" onclick="switchDashboardTab('screen-perfil'); return false;">
+      <i class="fa-solid fa-user"></i> Perfil
+    </a>
+  </li>
+  <li id="menu-config">
+    <a href="#" onclick="switchDashboardTab('screen-config'); return false;">
+      <i class="fa-solid fa-gear"></i> Configurações
+    </a>
+  </li>
+</ul>
       
       <div style="margin-top: auto; padding-top: 20px;">
         <a onclick="showLogoutModal()" style="color: rgba(255,255,255,0.75); cursor: pointer; display: flex; align-items: center; gap: 14px; font-weight: 600;">
@@ -158,33 +182,34 @@
     </aside>
 
     <main class="main-content">
+
       <!-- 4. CHAT COM OLIVIA -->
-      <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 18px;">
-              <!-- NOVO AVATAR NO HEADER DO CHAT -->
-              <img src="./images/olivia-avatar.png" class="chat-avatar-live" alt="Olivia">
-              <div>
-                <h3 style="color: var(--purple-dark);" id="chat-user-greeting">Olá!</h3>
-                <p style="color: var(--text-muted); font-size: 0.88rem;">Como você está se sentindo hoje?</p>
-              </div>
-            </div>
-            <button class="btn-secondary" onclick="startNewConversation()" style="padding: 10px 18px; font-size: 0.85rem;">
-              <i class="fa-solid fa-plus"></i> Nova Conversa
-            </button>
-          </div>
-          
-          <div class="chat-messages" id="chat-messages-container">
-            <div class="message-bubble olivia">
-              Estou aqui para te ouvir e ajudar no que precisar hoje. Pode me contar como você está se sentindo.
+      <div id="screen-chat" class="dashboard-tab" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 18px;">
+            <!-- NOVO AVATAR NO HEADER DO CHAT -->
+            <img src="./images/olivia-avatar.jpg" class="chat-avatar-live" alt="Olivia">
+            <div>
+              <h3 style="color: var(--purple-dark);" id="chat-user-greeting">Olá!</h3>
+              <p style="color: var(--text-muted); font-size: 0.88rem;">Como você está se sentindo hoje?</p>
             </div>
           </div>
+          <button class="btn-secondary" onclick="startNewConversation()" style="padding: 10px 18px; font-size: 0.85rem;">
+            <i class="fa-solid fa-plus"></i> Nova Conversa
+          </button>
+        </div>
           
-          <div class="chat-input-area">
-            <input type="text" id="chat-input-field" class="input-field" placeholder="Digite sua mensagem...">
-            <button class="btn-primary" onclick="handleSendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        <div class="chat-messages" id="chat-messages-container">
+          <div class="message-bubble olivia">
+            Estou aqui para te ouvir e ajudar no que precisar hoje. Pode me contar como você está se sentindo.
           </div>
         </div>
-      </section>
+          
+        <div class="chat-input-area">
+          <input type="text" id="chat-input-field" class="input-field" placeholder="Digite sua mensagem...">
+          <button class="btn-primary" onclick="handleSendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
 
       <!-- 5. ATIVIDADES DIÁRIAS -->
       <section id="screen-atividades" class="dashboard-tab" style="display: none;">

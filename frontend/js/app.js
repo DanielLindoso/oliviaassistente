@@ -31,12 +31,23 @@ function navigateTo(screenId) {
 }
 
 function switchDashboardTab(tabId) {
-  document.querySelectorAll(".dashboard-tab").forEach(el => el.style.display = "none");
-  document.querySelectorAll(".sidebar-menu li").forEach(el => el.classList.remove("active"));
+  // 1. Esconde todas as abas do dashboard
+  document.querySelectorAll(".dashboard-tab").forEach(el => {
+    el.style.display = "none";
+  });
 
+  // 2. Remove a classe 'active' de TODOS os itens do menu lateral
+  document.querySelectorAll(".sidebar-menu li").forEach(el => {
+    el.classList.remove("active");
+  });
+
+  // 3. Mostra apenas a aba alvo selecionada
   const targetTab = document.getElementById(tabId);
-  if (targetTab) targetTab.style.display = "block";
+  if (targetTab) {
+    targetTab.style.display = "flex"; // Força a exibição da aba
+  }
 
+  // 4. Mapeia e adiciona a classe 'active' no item correto do menu lateral
   const menuMap = {
     'screen-chat': 'menu-chat',
     'screen-atividades': 'menu-atividades',
@@ -46,12 +57,25 @@ function switchDashboardTab(tabId) {
     'screen-config': 'menu-config'
   };
 
-  if (menuMap[tabId]) {
-    document.getElementById(menuMap[tabId])?.classList.add("active");
+  const activeMenuId = menuMap[tabId];
+  if (activeMenuId) {
+    const menuElement = document.getElementById(activeMenuId);
+    if (menuElement) {
+      menuElement.classList.add("active");
+    }
   }
 
-  if (tabId === 'screen-historico') fetchHistory();
-  if (tabId === 'screen-progresso') updateProgressDashboard();
+  // 5. Atualiza os dados de forma segura sem travar
+  try {
+    if (tabId === 'screen-historico' && typeof fetchHistory === 'function') {
+      fetchHistory();
+    }
+    if (tabId === 'screen-progresso' && typeof updateProgressDashboard === 'function') {
+      updateProgressDashboard();
+    }
+  } catch (err) {
+    console.warn("Aviso de sincronização:", err);
+  }
 }
 
 function checkSession() {
@@ -103,14 +127,6 @@ async function handleLogin(e) {
       body: JSON.stringify({ email, password })
     });
 
-    if (!res.ok) {
-      res = await fetch(`${API_BASE_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-    }
-
     const data = await res.json();
 
     if (res.ok) {
@@ -149,14 +165,12 @@ async function handleCadastro(e) {
 
   if (!name || !email || !password) return;
 
-  // Feedback visual de carregamento para o usuário
   if (submitBtn) {
     submitBtn.disabled = true;
     submitBtn.innerText = "Conectando com a Olívia...";
   }
 
   try {
-    // Chamada direta para o endpoint oficial de autenticação
     const res = await fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -199,8 +213,11 @@ function startNewConversation() {
   const container = document.getElementById("chat-messages-container");
   if (container) {
     container.innerHTML = `
-      <div class="message-bubble olivia">
-        Olá! Nova conversa iniciada. Como posso te apoiar agora?
+      <div class="olivia-message-container">
+        <img src="./images/olivia-avatar.jpg" class="olivia-chat-avatar chat-avatar-live" alt="Olivia">
+        <div class="message-bubble olivia" style="margin-left: 0;">
+          Olá! Nova conversa iniciada. Como posso te apoiar agora?
+        </div>
       </div>
     `;
   }
@@ -216,7 +233,6 @@ async function handleSendMessage() {
 
   const container = document.getElementById("chat-messages-container");
 
-  // Balão de mensagem do utilizador
   const userBubble = document.createElement("div");
   userBubble.className = "message-bubble user";
   userBubble.innerText = messageText;
@@ -230,12 +246,12 @@ async function handleSendMessage() {
 
   saveMessageToLocalHistory(rawUserId, 'user', messageText);
 
-  // Indicador VIVO de "Pensando..." com o avatar
+  // Indicador de "Pensando..."
   const thinkingRow = document.createElement("div");
   thinkingRow.id = "olivia-thinking-row";
   thinkingRow.className = "olivia-message-container";
   thinkingRow.innerHTML = `
-    <img src="./images/olivia-avatar.png" class="olivia-chat-avatar chat-avatar-live" alt="Olivia">
+    <img src="./images/olivia-avatar.jpg" class="olivia-chat-avatar chat-avatar-live" alt="Olivia">
     <div class="olivia-thinking-indicator">
       <span></span><span></span><span></span>
     </div>
@@ -256,16 +272,14 @@ async function handleSendMessage() {
     const data = await res.json();
     const botResponse = data.response || data.reply || "Estou aqui acompanhando você. Como se sente agora?";
 
-    // Remove o indicador de "pensando"
     document.getElementById("olivia-thinking-row")?.remove();
 
-    // Cria a linha da mensagem da Olívia com o novo avatar 3D
     const messageRow = document.createElement("div");
     messageRow.className = "olivia-message-container";
 
     const avatar = document.createElement("img");
     avatar.className = "olivia-chat-avatar chat-avatar-live";
-    avatar.src = "./images/olivia-avatar.png";
+    avatar.src = "./images/olivia-avatar.jpg";
     avatar.alt = "Olivia";
 
     const oliviaBubble = document.createElement("div");
@@ -289,7 +303,7 @@ async function handleSendMessage() {
 
     const avatar = document.createElement("img");
     avatar.className = "olivia-chat-avatar chat-avatar-live";
-    avatar.src = "./images/olivia-avatar.png";
+    avatar.src = "./images/olivia-avatar.jpg";
 
     const errorBubble = document.createElement("div");
     errorBubble.className = "message-bubble olivia";
@@ -302,7 +316,19 @@ async function handleSendMessage() {
   }
 }
 
-// 4. HISTÓRICO E PROGRESSO
+function saveMessageToLocalHistory(userId, role, content) {
+  const key = `chat_history_${userId || 'guest'}`;
+  let history = [];
+  try {
+    history = JSON.parse(localStorage.getItem(key)) || [];
+  } catch (e) {
+    history = [];
+  }
+  history.push({ role, content, created_at: new Date().toISOString() });
+  localStorage.setItem(key, JSON.stringify(history));
+}
+
+// 4. HISTÓRICO E PROGRESSO (CORRIGIDO E BLINDADO CONTRA ERRO 500)
 async function fetchHistory() {
   const rawUserId = localStorage.getItem("user_id");
   const listContainer = document.getElementById("history-list-container");
@@ -312,6 +338,7 @@ async function fetchHistory() {
 
   let messages = [];
 
+  // Tenta buscar da API apenas se houver userID e de forma totalmente segura
   if (rawUserId) {
     const userId = parseInt(rawUserId, 10);
     try {
@@ -319,12 +346,15 @@ async function fetchHistory() {
       if (res.ok) {
         const data = await res.json();
         messages = data.history || data.messages || [];
+      } else {
+        console.warn("Aviso: Servidor retornou erro ao buscar histórico. Utilizando cache local.");
       }
     } catch (err) {
-      console.warn("Erro ao buscar histórico da API, verificando cache local...", err);
+      console.warn("API indisponível. Carregando histórico local...", err);
     }
   }
 
+  // Se a API falhou ou não retornou dados, busca do localStorage
   if (messages.length === 0) {
     const localHistory = localStorage.getItem(`chat_history_${rawUserId || 'guest'}`);
     if (localHistory) {
@@ -360,7 +390,10 @@ async function fetchHistory() {
         const container = document.getElementById("chat-messages-container");
         if (container) {
           container.innerHTML = `
-            <div class="message-bubble ${isUser ? 'user' : 'olivia'}">${content}</div>
+            <div class="olivia-message-container">
+              <img src="./images/olivia-avatar.jpg" class="olivia-chat-avatar chat-avatar-live" alt="Olivia">
+              <div class="message-bubble ${isUser ? 'user' : 'olivia'}" style="margin-left: 0;">${content}</div>
+            </div>
           `;
         }
         switchDashboardTab("screen-chat");
@@ -378,21 +411,35 @@ async function updateProgressDashboard() {
   if (!rawUserId) return;
   const userId = parseInt(rawUserId, 10);
 
+  // Atualiza contagem de atividades locais
   const activitiesCompleted = localStorage.getItem(`activities_completed_${userId}`) || "0";
   const activitiesElem = document.getElementById("stat-atividades-count");
   if (activitiesElem) activitiesElem.innerText = activitiesCompleted;
 
+  const countElem = document.getElementById("stat-conversas-count");
+  if (!countElem) return;
+
+  // Tenta contar do histórico local primeiro para ser instantâneo e seguro
+  const localHistory = localStorage.getItem(`chat_history_${rawUserId}`);
+  if (localHistory) {
+    try {
+      const parsed = JSON.parse(localHistory);
+      countElem.innerText = parsed.length;
+    } catch (e) {
+      countElem.innerText = "0";
+    }
+  }
+
+  // Tenta atualizar via API em segundo plano de forma totalmente segura (sem quebrar se der 500)
   try {
     const res = await fetch(`${API_BASE_URL}/api/chat/history/${userId}`);
-    const data = await res.json();
-    const historyItems = data.history || data.messages || [];
-    const countElem = document.getElementById("stat-conversas-count");
-
-    if (res.ok && countElem) {
+    if (res.ok) {
+      const data = await res.json();
+      const historyItems = data.history || data.messages || [];
       countElem.innerText = historyItems.length;
     }
   } catch (err) {
-    console.error("Erro ao atualizar contadores do progresso:", err);
+    // Apenas silencia o erro para não travar a aplicação se o Render estiver instável
   }
 }
 
