@@ -1030,3 +1030,35 @@ body.dark-mode .sidebar {
 body.dark-mode .sidebar-menu li {
   color: #e9d5ff !important;
 }
+
+/* ==========================================================================
+   CORREÇÃO EXCLUSIVA DO MODO CLARO (IGUALA O TAMANHO AO MODO ESCURO)
+   ========================================================================== */
+
+/* 1. Empilha os itens verticalmente e estica os cartões para o tamanho original */
+body:not(.dark-mode) .dashboard-tab {
+  flex-direction: column !important;
+  align-items: stretch !important; /* Estica para ficar exatamente da mesma largura do modo escuro */
+}
+
+/* 2. Título na sua própria linha */
+body:not(.dark-mode) .dashboard-tab h2 {
+  display: block !important;
+  width: 100% !important;
+  margin-bottom: 8px !important;
+}
+
+/* 3. Subtítulo na linha de baixo com espaçamento */
+body:not(.dark-mode) .dashboard-tab > p:not(.message-bubble p):not(.activity-info p) {
+  display: block !important;
+  width: 100% !important;
+  margin-bottom: 24px !important;
+}
+
+/* 4. Garante que os blocos/cartões ocupam 100% e ficam uns debaixo dos outros */
+body:not(.dark-mode) .dashboard-tab > div:not(.chat-header):not(.chat-messages):not(.chat-input-area),
+body:not(.dark-mode) .config-card {
+  width: 100% !important;
+  max-width: 100% !important; /* Impede que fiquem encolhidos */
+  margin-bottom: 16px !important;
+}
