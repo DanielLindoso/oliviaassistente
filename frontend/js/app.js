@@ -588,3 +588,32 @@ function confirmLogout() {
   if (modal) modal.classList.remove("active");
   navigateTo("screen-home");
 }
+
+/* ==========================================================================
+   GESTÃO DO MODO ESCURO (DARK MODE)
+   ========================================================================== */
+
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle("dark-mode");
+  localStorage.setItem("olivia_dark_mode", isDark ? "enabled" : "disabled");
+  updateDarkModeButtonText(isDark);
+}
+
+function updateDarkModeButtonText(isDark) {
+  const btn = document.getElementById("dark-mode-toggle-btn");
+  if (!btn) return;
+  if (isDark) {
+    btn.innerHTML = `<i class="fa-solid fa-sun"></i> Ativar Modo Claro`;
+  } else {
+    btn.innerHTML = `<i class="fa-solid fa-moon"></i> Ativar Modo Escuro`;
+  }
+}
+
+// Executar verificação do tema guardado ao carregar a página
+document.addEventListener("DOMContentLoaded", () => {
+  const savedTheme = localStorage.getItem("olivia_dark_mode");
+  if (savedTheme === "enabled") {
+    document.body.classList.add("dark-mode");
+    updateDarkModeButtonText(true);
+  }
+});

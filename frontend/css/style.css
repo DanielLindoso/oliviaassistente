@@ -788,35 +788,245 @@ body {
 }
 
 /* ==========================================================================
-   CORREÇÃO DE ALINHAMENTO E ESPAÇAMENTO DAS ABAS DO DASHBOARD
+   DARK MODE PROFISSIONAL - OLÍVIA ASSISTENTE (CORRIGIDO E ORGANIZADO)
    ========================================================================== */
 
-.dashboard-tab {
-  display: none;
-  flex-direction: column;
-  padding: 30px;
-  background-color: #f8f6fc;
-  height: 100%;
-  overflow-y: auto;
-  box-sizing: border-box;
+/* Quando o modo escuro está ativo */
+body.dark-mode {
+  background-color: #120d1a !important;
+  color: #f3f4f6 !important;
 }
 
-.dashboard-tab.active,
-.dashboard-tab[style*="display: flex"] {
+body.dark-mode .main-content {
+  background-color: #120d1a !important;
+}
+
+/* 1. Restaura perfeitamente o layout e espaçamento das abas e títulos */
+body.dark-mode .dashboard-tab {
+  background-color: #120d1a !important;
+  color: #f3f4f6 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+body.dark-mode .dashboard-tab h2 {
+  color: #ffffff !important;
+  font-size: 1.8rem !important;
+  margin-bottom: 8px !important;
+  display: block !important;
+  width: 100%;
+}
+
+body.dark-mode .dashboard-tab p:not(.message-bubble p):not(.activity-info p) {
+  color: #d1d5db !important;
+  margin-bottom: 24px !important;
+  display: block !important;
+  width: 100%;
+}
+
+/* 2. Cabeçalho do Chat (Mantém o fundo original claro e garante letras escuras e legíveis) */
+body.dark-mode .chat-header {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #e5e7eb !important;
+}
+
+body.dark-mode .chat-header h3,
+body.dark-mode .chat-header strong {
+  color: #4c2885 !important; /* Roxo escuro destacado */
+}
+
+body.dark-mode .chat-header p {
+  color: #4b5563 !important; /* Cinza escuro perfeitamente legível no fundo claro */
+}
+
+/* 3. Cartões de Atividades, Progresso, Perfil e Histórico no Modo Escuro */
+body.dark-mode .feature-card, 
+body.dark-mode .activity-card,
+body.dark-mode .stat-card,
+body.dark-mode div[style*="background: var(--white)"],
+body.dark-mode div[style*="background: #ffffff"] {
+  background-color: #1e152d !important;
+  color: #f3f4f6 !important;
+  border: 1px solid #4c3575 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Textos internos dos cartões e caixas de perfil/progresso */
+body.dark-mode .activity-card h4,
+body.dark-mode .activity-card p,
+body.dark-mode .stat-card p,
+body.dark-mode .stat-card div,
+body.dark-mode .dashboard-tab strong,
+body.dark-mode .dashboard-tab span {
+  color: #f3f4f6 !important;
+}
+
+/* 4. Caixa de Mensagens e Input do Chat */
+body.dark-mode .chat-messages {
+  background-color: #120d1a !important;
+}
+
+body.dark-mode .message-bubble.olivia {
+  background-color: #1e152d !important;
+  color: #f3f4f6 !important;
+  border: 1px solid #4c3575 !important;
+}
+
+body.dark-mode .chat-input-area {
+  background-color: #1e152d !important;
+  border-top: 1px solid #4c3575 !important;
+}
+
+body.dark-mode .input-field {
+  background-color: #171024 !important;
+  color: #ffffff !important;
+  border-color: #4c3575 !important;
+}
+
+body.dark-mode .input-field::placeholder {
+  color: #9ca3af !important;
+}
+
+/* 5. Menu Lateral no Modo Escuro */
+body.dark-mode .sidebar {
+  background: #171024 !important;
+}
+
+body.dark-mode .sidebar-menu li {
+  color: #e9d5ff !important;
+}
+
+/* ==========================================================================
+   TEMA (CORREÇÃO ESTRUTURAL SEGURA + MODO ESCURO PERFEITO)
+   ========================================================================== */
+
+/* 1. CORREÇÃO DO MODO CLARO E ESCURO (Alinha títulos sem quebrar menus nem cartões) */
+.dashboard-tab h2 {
+  display: block !important;
+  width: 100% !important;
+  margin-bottom: 6px !important;
+  clear: both !important;
+}
+
+.dashboard-tab > p:not(.message-bubble p):not(.activity-info p) {
+  display: block !important;
+  width: 100% !important;
+  margin-bottom: 24px !important;
+  clear: both !important;
+}
+
+/* Impede que os cartões fiquem esticados e desconfigurados */
+#screen-config .config-card,
+#screen-config > div,
+#screen-profile > div.profile-card {
+  max-width: 750px !important;
   display: flex !important;
   flex-direction: column !important;
+  margin-bottom: 16px !important;
 }
 
-/* Garante espaçamento correto entre títulos e conteúdos nas abas */
-.dashboard-tab h2 {
-  font-size: 1.8rem;
-  color: var(--purple-dark, #4c2885);
-  margin-bottom: 6px;
-  margin-top: 0;
+/* ==========================================================================
+   2. MODO ESCURO (INTACTO E FUNCIONAL)
+   ========================================================================== */
+body.dark-mode {
+  background-color: #120d1a !important;
+  color: #f3f4f6 !important;
 }
 
-.dashboard-tab p {
-  color: var(--text-muted, #6b7280);
-  margin-bottom: 24px;
-  margin-top: 0;
+body.dark-mode .main-content {
+  background-color: #120d1a !important;
+}
+
+body.dark-mode .dashboard-tab {
+  background-color: #120d1a !important;
+  color: #f3f4f6 !important;
+}
+
+body.dark-mode .dashboard-tab h2 {
+  color: #ffffff !important;
+}
+
+body.dark-mode .dashboard-tab > p:not(.message-bubble p):not(.activity-info p) {
+  color: #d1d5db !important;
+}
+
+/* Cabeçalho do Chat no Modo Escuro */
+body.dark-mode .chat-header {
+  background-color: #1e152d !important;
+  background: #1e152d !important;
+  color: #ffffff !important;
+  border: 1px solid #4c3575 !important;
+}
+
+body.dark-mode .chat-header h3,
+body.dark-mode .chat-header strong,
+body.dark-mode .chat-header span {
+  color: #ffffff !important;
+}
+
+body.dark-mode .chat-header p,
+body.dark-mode .chat-header div div p,
+body.dark-mode .chat-header .chat-subtitle {
+  color: #d1d5db !important;
+}
+
+/* Cartões no Modo Escuro */
+body.dark-mode .feature-card, 
+body.dark-mode .activity-card,
+body.dark-mode .stat-card,
+body.dark-mode .history-card,
+body.dark-mode .config-card,
+body.dark-mode div[style*="background: var(--white)"],
+body.dark-mode div[style*="background: #ffffff"] {
+  background-color: #1e152d !important;
+  color: #f3f4f6 !important;
+  border: 1px solid #4c3575 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .activity-card h4,
+body.dark-mode .activity-card p,
+body.dark-mode .stat-card p,
+body.dark-mode .stat-card div,
+body.dark-mode .history-card p,
+body.dark-mode .config-card h3,
+body.dark-mode .config-card p,
+body.dark-mode .dashboard-tab strong {
+  color: #f3f4f6 !important;
+}
+
+/* Chat no Modo Escuro */
+body.dark-mode .chat-messages {
+  background-color: #120d1a !important;
+}
+
+body.dark-mode .message-bubble.olivia {
+  background-color: #1e152d !important;
+  color: #f3f4f6 !important;
+  border: 1px solid #4c3575 !important;
+}
+
+body.dark-mode .chat-input-area {
+  background-color: #1e152d !important;
+  border-top: 1px solid #4c3575 !important;
+}
+
+body.dark-mode .input-field {
+  background-color: #171024 !important;
+  color: #ffffff !important;
+  border-color: #4c3575 !important;
+}
+
+body.dark-mode .input-field::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Menu Lateral no Modo Escuro */
+body.dark-mode .sidebar {
+  background: #171024 !important;
+}
+
+body.dark-mode .sidebar-menu li {
+  color: #e9d5ff !important;
 }

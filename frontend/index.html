@@ -190,8 +190,8 @@
             <!-- NOVO AVATAR NO HEADER DO CHAT -->
             <img src="./images/olivia-avatar.jpg" class="chat-avatar-live" alt="Olivia">
             <div>
-              <h3 style="color: var(--purple-dark);" id="chat-user-greeting">Olá!</h3>
-              <p style="color: var(--text-muted); font-size: 0.88rem;">Como você está se sentindo hoje?</p>
+              <h3 id="chat-user-greeting">Olá!</h3>
+              <p class="chat-subtitle" style="color: var(--text-muted); font-size: 0.88rem;">Como você está se sentindo hoje?</p>
             </div>
           </div>
           <button class="btn-secondary" onclick="startNewConversation()" style="padding: 10px 18px; font-size: 0.85rem;">
@@ -273,15 +273,26 @@
         </div>
       </section>
 
-      <!-- 9. CONFIGURAÇÕES -->
-      <section id="screen-config" class="dashboard-tab" style="display: none;">
-        <h2 style="color: var(--purple-dark); margin-bottom: 24px;">Configurações</h2>
-        <div style="background: var(--white); padding: 36px; border-radius: var(--radius-lg); max-width: 500px; box-shadow: var(--shadow-subtle);">
-          <p style="color: var(--text-muted);">Configurações de acessibilidade e preferências de conta.</p>
+      <!-- 9: CONFIGURAÇÕES -->
+      <div id="screen-config" class="dashboard-tab" style="display: none;">
+        <h2 style="color: var(--purple-dark); margin-bottom: 8px;">Configurações</h2>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">Personalize a sua experiência com a assistente.</p>
+        
+        <div class="feature-card" style="max-width: 500px; text-align: left; margin-bottom: 20px;">
+          <p style="font-weight: 600; color: var(--purple-dark); margin-bottom: 8px;">Aparência do Sistema</p>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">Alterne entre o modo claro e o modo escuro aconchegante.</p>
+          
+          <button class="btn-primary" onclick="toggleDarkMode()" id="dark-mode-toggle-btn" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fa-solid fa-moon"></i> Ativar Modo Escuro
+          </button>
         </div>
-      </section>
-    </main>
-  </div>
+
+        <div class="feature-card" style="max-width: 500px; text-align: left;">
+          <p style="font-weight: 600; color: var(--purple-dark); margin-bottom: 8px;">Versão do Sistema</p>
+          <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 16px;">Olívia Assistant SPA v2.6 - Produção</p>
+          <button class="btn-secondary" onclick="showLogoutModal()">Terminar Sessão</button>
+        </div>
+      </div>
 
   <!-- MODAL DE ATIVIDADES -->
   <div id="activity-modal" class="modal-overlay">
