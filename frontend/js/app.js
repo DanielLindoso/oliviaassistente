@@ -407,40 +407,46 @@ async function fetchHistory() {
 }
 
 async function updateProgressDashboard() {
-  const rawUserId = localStorage.getItem("user_id");
-  if (!rawUserId) return;
-  const userId = parseInt(rawUserId, 10);
+    const rawUserId = localStorage.getItem("user_id") || "1";
+    const userId = parseInt(rawUserId, 10);
 
-  // Atualiza contagem de atividades locais
-  const activitiesCompleted = localStorage.getItem(`activities_completed_${userId}`) || "0";
-  const activitiesElem = document.getElementById("stat-atividades-count");
-  if (activitiesElem) activitiesElem.innerText = activitiesCompleted;
+    // Atualiza contagem de atividades locais
+    const activitiesCompleted = localStorage.getItem(`activities_completed_${userId}`) || "0";
+    const activitiesElem = document.getElementById("stat-atividades-count");
+    if (activitiesElem) activitiesElem.innerText = activitiesCompleted;
 
-  const countElem = document.getElementById("stat-conversas-count");
-  if (!countElem) return;
+    const countElem = document.getElementById("stat-conversas-count");
+    if (!countElem) return;
 
-  // Tenta contar do histórico local primeiro para ser instantâneo e seguro
-  const localHistory = localStorage.getItem(`chat_history_${rawUserId}`);
-  if (localHistory) {
+    // Tenta atualizar via API em segundo plano
     try {
-      const parsed = JSON.parse(localHistory);
-      countElem.innerText = parsed.length;
-    } catch (e) {
-      countElem.innerText = "0";
+        const res = await fetch(`${API_BASE_URL}/api/chat/history/${userId}`);
+        if (res.ok) {
+            const data = await res.json();
+            const historyItems = data.history || data.messages || [];
+            
+            // Se houver mensagens salvas no histórico, contabiliza a conversa ativa (1 ou mais)
+            if (historyItems.length > 0) {
+                countElem.innerText = "1";
+            } else {
+                countElem.innerText = "0";
+            }
+            return;
+        }
+    } catch (err) {
+        // Apenas silencia o erro para não travar a aplicação
     }
-  }
 
-  // Tenta atualizar via API em segundo plano de forma totalmente segura (sem quebrar se der 500)
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/chat/history/${userId}`);
-    if (res.ok) {
-      const data = await res.json();
-      const historyItems = data.history || data.messages || [];
-      countElem.innerText = historyItems.length;
+    // Fallback: se a API falhar, tenta ler do localStorage
+    const localHistory = localStorage.getItem(`chat_history_${rawUserId}`);
+    if (localHistory) {
+        try {
+            const parsed = JSON.parse(localHistory);
+            countElem.innerText = parsed.length > 0 ? "1" : "0";
+        } catch (e) {
+            countElem.innerText = "0";
+        }
     }
-  } catch (err) {
-    // Apenas silencia o erro para não travar a aplicação se o Render estiver instável
-  }
 }
 
 function incrementActivityCount() {
