@@ -167,6 +167,8 @@ Eu sou uma assistente virtual e estou aqui para te ouvir, mas em um momento como
 Você importa muito. Por favor, alcance essa mão amiga e busque esse ajuda agora."
 """
 
+# Mantenha o SYSTEM_PROMPT no topo como está na sua imagem
+
 @app.post("/chat")
 @app.post("/api/chat")
 def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
@@ -177,7 +179,6 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
             detail="A variável GEMINI_API_KEY não foi encontrada no ambiente do Render."
         )
 
-    # 1. Tratamento e limpeza do texto enviado pelo usuário
     texto_bruto = msg.message or msg.text or ""
     texto_usuario = str(texto_bruto).strip().strip('"').strip("'")
     if not texto_usuario:
@@ -188,30 +189,25 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
 
     genai.configure(api_key=api_key.strip())
 
-    # 2. PROMPT WRAPPING EMBUTIDO DIRETAMENTE NA ROTA
-    prompt_completo = f"""Você é a Olívia, uma parceira de conversa empática, acolhedora, humana e muito inteligente.
+    # CONCATENA O SYSTEM_PROMPT DO TOPO COM A MENSAGEM ATUAL
+    prompt_completo = f"""{SYSTEM_PROMPT}
 
-# SUAS DIRETRIZES DE COMPORTAMENTO:
-1. RESPOSTA PARAGRAFADA E ACOLHEDORA:
-   - Responda de forma empática e natural, escrevendo de 2 a 4 parágrafos curtos.
-   - Valide os sentimentos do usuário e converse abertamente sobre o contexto trazido (ex: sobrecarga de prazos, ansiedade com faculdade e cursos, rotina cansativa).
-   - Dê conselhos práticos de vida e organização (focar em uma etapa por vez, respeitar o ritmo do corpo, dividir tarefas).
+[MENSAGEM ATUAL DO USUÁRIO]:
+"{texto_usuario}"
 
-2. PROIBIÇÕES ABSOLUTAS:
-   - É ESTRITAMENTE PROIBIDO sugerir exercícios de respiração, acalmar a mente ou fazer técnicas de relaxamento.
-   - É ESTRITAMENTE PROIBIDO fazer perguntas de triagem ou menus como "prefere desabafar ou acalmar a mente?".
-   - Nunca responda com apenas uma ou duas frases genéricas.
+Olívia Correta:"""
 
-3. PROTOCOLO DE SEGURANÇA E CRISE:
-   - Se o usuário expressar desespero extremo, intenção de autolesão ou ideação suicida (ex: "pensando em desistir de tudo", "não aguento mais viver"), acolha com extremo carinho.
-   - Informe imediatamente que ele não está sozinho e forneça o contato do CVV (188, ligação gratuita e 24h) ou o site cvv.org.br, perguntando se ele está em um local seguro.
-
-Mensagem do usuário: "{texto_usuario}"
-
-Sua resposta acolhedora, empática e conversacional:"""
-
-    modelos_para_testar = ["gemini-1.5-flash", "gemini-1.5-pro"]
+    # LISTA ATUALIZADA DE MODELOS SUPORTADOS PELA API
+    modelos_para_testar = [
+        "models/gemini-1.5-flash",
+        "models/gemini-1.5-pro",
+        "gemini-2.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro-latest"
+    ]
+    
     resposta_texto = None
+    ultimo_erro = None
 
     for nome_modelo in modelos_para_testar:
         try:
@@ -221,18 +217,20 @@ Sua resposta acolhedora, empática e conversacional:"""
                 resposta_texto = response.text
                 break
         except Exception as e:
-            print(f"Erro no modelo {nome_modelo}: {e}")
+            ultimo_erro = e
+            print(f"Erro ao testar modelo {nome_modelo}: {e}")
             continue
 
     if not resposta_texto:
+        print(f"Todos os modelos falharam. Último erro: {ultimo_erro}")
         resposta_texto = "Estou recebendo muitas mensagens neste momento. Pode repetir o que disse para mim, por favor?"
 
-    # 3. Salva no banco SQLite local (se houver user_id / conversation_id)
+    # Salva no banco SQLite com tratamento de fallback
     conversation_id = msg.conversation_id
     if msg.user_id:
         try:
             if not conversation_id:
-                conv = db.query(models.Conversation).filter(models.Conversation.user_id == msg.user_id).order_by(models.Conversation.created_at.desc()).first()
+                conv = db.query(models.Conversation).filter(models.Conversation.user_id == msg.user_id).order_by(models.Conversation.id.desc()).first()
                 if not conv:
                     conv = models.Conversation(user_id=msg.user_id, title="Conversa Principal")
                     db.add(conv)
@@ -256,7 +254,7 @@ Sua resposta acolhedora, empática e conversacional:"""
             db.commit()
         except Exception as db_err:
             db.rollback()
-            print(f"Erro ao salvar no banco: {db_err}")
+            print(f"Aviso no banco (ignorado para não travar a resposta): {db_err}")
 
     return {
         "response": resposta_texto,
