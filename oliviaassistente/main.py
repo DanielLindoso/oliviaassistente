@@ -196,7 +196,6 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
 
 Olívia Correta:"""
 
-    # NOMES DE MODELOS COMPATÍVEIS COM O SDK RECENTE DA GOOGLE
     modelos_para_testar = [
         "gemini-2.5-flash",
         "gemini-1.5-flash",
@@ -220,10 +219,9 @@ Olívia Correta:"""
             continue
 
     if not resposta_texto:
-        print(f"[ERRO CRÍTICO] Todos os modelos falharam. Motivo principal: {ultimo_erro}")
+        print(f"[ERRO CRÍTICO] Todos os modelos falharam: {ultimo_erro}")
         resposta_texto = "Estou recebendo muitas mensagens neste momento. Pode repetir o que disse para mim, por favor?"
 
-    # Tratamento do SQLite (evita falha na rota se a tabela messages não tiver a coluna timestamp)
     conversation_id = msg.conversation_id
     if msg.user_id:
         try:
@@ -252,7 +250,7 @@ Olívia Correta:"""
             db.commit()
         except Exception as db_err:
             db.rollback()
-            print(f"[AVISO BANCO] Falha ao guardar histórico no SQLite: {db_err}")
+            print(f"[AVISO BANCO] Falha no salvamento: {db_err}")
 
     return {
         "response": resposta_texto,
@@ -264,20 +262,15 @@ Olívia Correta:"""
 @app.get("/api/chat/history/{user_id}")
 def get_chat_history(user_id: int, db: Session = Depends(get_db)):
     try:
-        # Busca a conversa mais recente do usuário
-        conv = db.query(models.Conversation).filter(models.Conversation.user_id == user_id).order_by(models.Conversation.created_at.desc()).first()
+        conv = db.query(models.Conversation).filter(models.Conversation.user_id == user_id).order_by(models.Conversation.id.desc()).first()
         if not conv:
-            return {"status": "success", "messages": []}
-
-        messages = db.query(models.Message).filter(models.Message.conversation_id == conv.id).order_by(models.Message.timestamp.asc()).all()
+            return {"messages": []}
+            
+        messages = db.query(models.Message).filter(models.Message.conversation_id == conv.id).all()
         return {
-            "status": "success",
             "conversation_id": conv.id,
-            "messages": [{"role": m.role, "sender": "user" if m.role == "user" else "olivia", "content": m.content, "timestamp": m.timestamp} for m in messages]
+            "messages": [{"role": m.role, "content": m.content} for m in messages]
         }
-    except Exception as err:
-        print(f"Erro ao buscar histórico: {err}")
-        raise HTTPException(
-            status_code=500,
-            detail="Erro ao carregar histórico de conversas."
-        )
+    except Exception as e:
+        print(f"[AVISO HISTORICO] Erro ao carregar histórico: {e}")
+        return {"messages": []}
