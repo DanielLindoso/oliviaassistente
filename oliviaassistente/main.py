@@ -189,7 +189,6 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
 
     genai.configure(api_key=api_key.strip())
 
-    # CONCATENA O SYSTEM_PROMPT DO TOPO COM A MENSAGEM ATUAL
     prompt_completo = f"""{SYSTEM_PROMPT}
 
 [MENSAGEM ATUAL DO USUÁRIO]:
@@ -197,13 +196,12 @@ def chat_with_olivia(msg: ChatMessage, db: Session = Depends(get_db)):
 
 Olívia Correta:"""
 
-    # LISTA ATUALIZADA DE MODELOS SUPORTADOS PELA API
+    # NOMES DE MODELOS COMPATÍVEIS COM O SDK RECENTE DA GOOGLE
     modelos_para_testar = [
-        "models/gemini-1.5-flash",
-        "models/gemini-1.5-pro",
         "gemini-2.5-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-pro-latest"
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
+        "gemini-2.0-flash"
     ]
     
     resposta_texto = None
@@ -211,21 +209,21 @@ Olívia Correta:"""
 
     for nome_modelo in modelos_para_testar:
         try:
-            model = genai.GenerativeModel(model_name=nome_modelo)
+            model = genai.GenerativeModel(nome_modelo)
             response = model.generate_content(prompt_completo)
             if response and getattr(response, "text", None):
                 resposta_texto = response.text
                 break
         except Exception as e:
             ultimo_erro = e
-            print(f"Erro ao testar modelo {nome_modelo}: {e}")
+            print(f"[ERRO GEMINI] Falha no modelo '{nome_modelo}': {e}")
             continue
 
     if not resposta_texto:
-        print(f"Todos os modelos falharam. Último erro: {ultimo_erro}")
+        print(f"[ERRO CRÍTICO] Todos os modelos falharam. Motivo principal: {ultimo_erro}")
         resposta_texto = "Estou recebendo muitas mensagens neste momento. Pode repetir o que disse para mim, por favor?"
 
-    # Salva no banco SQLite com tratamento de fallback
+    # Tratamento do SQLite (evita falha na rota se a tabela messages não tiver a coluna timestamp)
     conversation_id = msg.conversation_id
     if msg.user_id:
         try:
@@ -254,7 +252,7 @@ Olívia Correta:"""
             db.commit()
         except Exception as db_err:
             db.rollback()
-            print(f"Aviso no banco (ignorado para não travar a resposta): {db_err}")
+            print(f"[AVISO BANCO] Falha ao guardar histórico no SQLite: {db_err}")
 
     return {
         "response": resposta_texto,
