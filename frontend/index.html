@@ -167,6 +167,11 @@
       <i class="fa-solid fa-user"></i> Perfil
     </a>
   </li>
+  <li id="menu-sobre">
+    <a href="#" onclick="switchDashboardTab('screen-sobre'); return false;">
+        <i class="fa-solid fa-circle-info"></i> Sobre
+    </a>
+</li>
   <li id="menu-config">
     <a href="#" onclick="switchDashboardTab('screen-config'); return false;">
       <i class="fa-solid fa-gear"></i> Configurações
@@ -271,6 +276,81 @@
           <p style="font-size: 1.1rem;"><strong>Nome:</strong> <span id="profile-name">-</span></p>
           <p style="font-size: 1.1rem; margin-top: 16px;"><strong>E-mail:</strong> <span id="profile-email">-</span></p>
         </div>
+      </section>
+
+      <!-- TELA: SOBRE -->
+      <section id="screen-sobre" class="dashboard-tab">
+
+          <h2 class="sobre-titulo-principal">Sobre a Olívia</h2>
+          <p class="sobre-subtitulo-principal">Sua assistente virtual de apoio emocional e bem-estar.</p>
+
+          <!-- Cartão Principal -->
+          <div class="config-card card-sobre">
+              
+              <!-- Avatar -->
+              <div class="avatar-container">
+                  <div class="avatar-glow"></div>
+                  <img src="./images/olivia-avatar.jpg" alt="Avatar da Olívia" class="avatar-img">
+              </div>
+              
+              <!-- Título -->
+              <h3 class="sobre-saudacao">Olá! Eu sou a Olívia 💜</h3>
+
+              <!-- Apresentação -->
+              <p class="sobre-descricao">
+                  Fui idealizada e desenvolvida para ser um espaço seguro, acolhedor e empático. O meu objetivo é te apoiar em momentos de ansiedade, estresse ou sobrecarga emocional no seu dia a dia.
+              </p>
+
+              <!-- Caixa de Proposta -->
+              <div class="caixa-proposta">
+                  <h4 class="proposta-titulo">Como posso te apoiar?</h4>
+                  
+                  <div class="proposta-item">
+                      <div class="proposta-icone">
+                          <i class="fa-solid fa-heart"></i>
+                      </div>
+                      <div class="proposta-texto">
+                          <strong>Escuta Ativa e Empática</strong>
+                          <span>Um ambiente livre de julgamentos para desabafar e organizar seus pensamentos.</span>
+                      </div>
+                  </div>
+                  
+                  <div class="proposta-item">
+                      <div class="proposta-icone">
+                          <i class="fa-solid fa-wind"></i>
+                      </div>
+                      <div class="proposta-texto">
+                          <strong>Acalmar e Desacelerar</strong>
+                          <span>Orientações práticas de respiração e ancoragem para momentos de crise de ansiedade.</span>
+                      </div>
+                  </div>
+                  
+                  <div class="proposta-item">
+                      <div class="proposta-icone">
+                          <i class="fa-solid fa-smile-beam"></i>
+                      </div>
+                      <div class="proposta-texto">
+                          <strong>Acompanhamento Diário</strong>
+                          <span>Exercícios e diálogos leves para ajudar na gestão emocional e no seu bem-estar.</span>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Frase de Missão -->
+              <div class="caixa-missao">
+                  <p>"Minha missão é lembrar que você não precisa carregar tudo sozinho(a). Estou aqui para caminhar ao seu lado e trazer calma ao seu dia."</p>
+              </div>
+
+              <!-- Aviso Médico -->
+              <div class="caixa-aviso">
+                  <p><strong>Nota:</strong> A Olívia é uma ferramenta de suporte e acolhimento digital e não substitui o acompanhamento profissional de psicólogos ou médicos especialistas.</p>
+              </div>
+
+              <!-- Rodapé -->
+              <div class="sobre-rodape">
+                  <p>Olívia Assistant SPA v2.6 </p>
+              </div>
+          </div>
       </section>
 
       <!-- 9: CONFIGURAÇÕES -->

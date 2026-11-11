@@ -1062,3 +1062,205 @@ body:not(.dark-mode) .config-card {
   max-width: 100% !important; /* Impede que fiquem encolhidos */
   margin-bottom: 16px !important;
 }
+
+body:not(.dark-mode) #screen-config > div,
+body:not(.dark-mode) .config-card,
+body:not(.dark-mode) #screen-sobre > div {
+  width: 100% !important;
+  max-width: 750px !important; 
+  margin-bottom: 16px !important;
+}
+
+/* ==========================================================================
+   ESTILIZAÇÃO EXCLUSIVA DA ABA SOBRE (VIVA, ELEGANTE E MODERNA)
+   ========================================================================== */
+
+/* Centralização da Seção */
+#screen-sobre {
+    flex-direction: column !important;
+    align-items: center !important;
+}
+
+.sobre-titulo-principal {
+    text-align: center !important;
+    width: 100% !important;
+}
+
+.sobre-subtitulo-principal {
+    text-align: center !important;
+    width: 100% !important;
+    margin-bottom: 30px !important;
+}
+
+/* Cartão Principal */
+.card-sobre {
+    margin: 0 auto !important;
+    text-align: center;
+    padding: 45px 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    max-width: 780px !important;
+    border-radius: 20px;
+    background: linear-gradient(145deg, rgba(124, 58, 237, 0.04) 0%, rgba(192, 132, 252, 0.02) 100%);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    box-shadow: 0 10px 30px rgba(124, 58, 237, 0.08) !important;
+}
+
+/* Avatar com Moldura e Sombra */
+.avatar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.avatar-glow {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: linear-gradient(135deg, #7c3aed, #c084fc);
+    border-radius: 50%;
+    opacity: 0.8;
+}
+
+.avatar-img {
+    position: relative;
+    z-index: 1;
+    width: 135px;
+    height: 135px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3.5px solid #ffffff;
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.25);
+}
+
+/* Saudação com Gradiente */
+.sobre-saudacao {
+    margin-top: 5px;
+    font-size: 1.8rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+}
+
+/* Descrição */
+.sobre-descricao {
+    max-width: 640px;
+    line-height: 1.7;
+    font-size: 1.05rem;
+    opacity: 0.95;
+}
+
+/* Caixa de Proposta de Apoio */
+.caixa-proposta {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+    max-width: 580px;
+    text-align: left;
+    background: rgba(124, 58, 237, 0.06);
+    padding: 24px 28px;
+    border-radius: 16px;
+    width: 100%;
+    border-left: 4px solid #7c3aed;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.proposta-titulo {
+    margin-bottom: 4px;
+    color: #7c3aed;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.proposta-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.proposta-icone {
+    background: #7c3aed;
+    color: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(124, 58, 237, 0.3);
+}
+
+.proposta-icone i {
+    font-size: 0.9rem;
+}
+
+.proposta-texto strong {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 2px;
+}
+
+.proposta-texto span {
+    font-size: 0.92rem;
+    opacity: 0.85;
+    line-height: 1.5;
+}
+
+/* Caixa de Missão */
+.caixa-missao {
+    max-width: 580px;
+    margin-top: 5px;
+    padding: 14px 20px;
+    border-left: 3px solid rgba(124, 58, 237, 0.4);
+    background: rgba(124, 58, 237, 0.02);
+    text-align: left;
+}
+
+.caixa-missao p {
+    font-size: 0.98rem;
+    line-height: 1.6;
+    font-style: italic;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Caixa de Aviso */
+.caixa-aviso {
+    margin-top: 10px;
+    padding: 14px 20px;
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    border-radius: 12px;
+    max-width: 580px;
+    text-align: left;
+}
+
+.caixa-aviso p {
+    font-size: 0.83rem;
+    opacity: 0.85;
+    line-height: 1.4;
+    margin: 0;
+}
+
+/* Rodapé */
+.sobre-rodape {
+    margin-top: 15px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(124, 58, 237, 0.15);
+    width: 100%;
+    max-width: 480px;
+}
+
+.sobre-rodape p {
+    font-size: 0.88rem;
+    opacity: 0.75;
+    margin: 0;
+}
