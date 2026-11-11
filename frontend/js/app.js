@@ -407,48 +407,52 @@ async function fetchHistory() {
 }
 
 async function updateProgressDashboard() {
+    // 1. Tenta obter o ID do utilizador ou usa '1' por padrão
     const rawUserId = localStorage.getItem("user_id") || "1";
     const userId = parseInt(rawUserId, 10);
 
-    // Atualiza contagem de atividades locais
+    // 2. Atualiza atividades
     const activitiesCompleted = localStorage.getItem(`activities_completed_${userId}`) || "0";
     const activitiesElem = document.getElementById("stat-atividades-count");
     if (activitiesElem) activitiesElem.innerText = activitiesCompleted;
 
+    // 3. Obtém o elemento de conversas do HTML
     const countElem = document.getElementById("stat-conversas-count");
     if (!countElem) return;
 
-    // Tenta atualizar via API em segundo plano
+    // 4. Busca no histórico da API
     try {
         const res = await fetch(`${API_BASE_URL}/api/chat/history/${userId}`);
         if (res.ok) {
             const data = await res.json();
-            const historyItems = data.history || data.messages || [];
+            // Aceita data.messages ou data.history
+            const historyItems = data.messages || data.history || [];
             
-            // Se houver mensagens salvas no histórico, contabiliza a conversa ativa (1 ou mais)
-            if (historyItems.length > 0) {
+            // Se existirem mensagens gravadas no banco de dados, define a contagem como 1 (ou mais)
+            if (historyItems && historyItems.length > 0) {
                 countElem.innerText = "1";
-            } else {
-                countElem.innerText = "0";
+                return;
             }
-            return;
         }
     } catch (err) {
-        // Apenas silencia o erro para não travar a aplicação
+        console.warn("Aviso ao carregar progresso da API:", err);
     }
 
-    // Fallback: se a API falhar, tenta ler do localStorage
+    // 5. Fallback: Se o utilizador tem histórico no localStorage ou se já iniciou conversa
     const localHistory = localStorage.getItem(`chat_history_${rawUserId}`);
     if (localHistory) {
         try {
             const parsed = JSON.parse(localHistory);
-            countElem.innerText = parsed.length > 0 ? "1" : "0";
-        } catch (e) {
-            countElem.innerText = "0";
-        }
+            if (parsed && parsed.length > 0) {
+                countElem.innerText = "1";
+                return;
+            }
+        } catch (e) {}
     }
-}
 
+    // Se chegou até aqui sem encontrar histórico em lado nenhum, mantém 0
+    countElem.innerText = "0";
+}
 function incrementActivityCount() {
   const rawUserId = localStorage.getItem("user_id");
   if (!rawUserId) return;
