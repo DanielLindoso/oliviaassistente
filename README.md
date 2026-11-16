@@ -75,3 +75,5 @@ uvicorn main:app --reload
 A API estará acessível em http://127.0.0.1:8000.6. Iniciar o FrontendAbra o arquivo frontend/index.html em qualquer navegador web ou utilize a extensão Live Server do Visual Studio Code.
 📑 Rotas Principais da APIMétodoRotaDescriçãoGET/Endpoint de verificação de status da APIPOST/api/chatEnvio de mensagens e geração de resposta empáticaGET/api/chat/history/{user_id}Recuperação do histórico de mensagens do usuário
 🎯 Visão de Futuro & Roadmap[ ] Implementação de RAG (Retrieval-Augmented Generation) utilizando LangChain e ChromaDB para embasamento de respostas em manuais de Psicoterapia Cognitivo-Comportamental (TCC).[ ] Suporte a áudios guiados para os exercícios de respiração e relaxamento.
+
+link:  oliviacalm.vercel.app
